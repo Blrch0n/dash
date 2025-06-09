@@ -1,5 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { registerUser, login, isAuthenticated } from "../../../lib/auth";
+import { useAuth } from "../../../contexts/AuthContext";
+import Link from "next/link";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -9,21 +13,59 @@ const SignUpPage = () => {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const router = useRouter();
+  const { login: authLogin } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.push("/");
+    }
+  }, [router]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+      setError("Passwords don't match!");
+      setLoading(false);
       return;
     }
-    console.log("Sign up attempt:", formData);
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long!");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Register the user
+      registerUser(formData);
+      
+      // Automatically log them in
+      const { user } = login(formData.email, formData.password);
+      authLogin(user);
+      
+      router.push("/"); // Redirect to dashboard
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,6 +74,13 @@ const SignUpPage = () => {
         <h2 className="text-2xl font-bold text-center mb-6 text-white">
           Sign Up
         </h2>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -127,11 +176,21 @@ const SignUpPage = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-500/50 text-white font-semibold py-3 px-4 rounded-lg transition duration-300"
           >
-            Sign Up
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-400 text-sm">
+            Already have an account?{" "}
+            <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+              Login here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
