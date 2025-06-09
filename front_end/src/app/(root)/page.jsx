@@ -25,7 +25,7 @@ export default function Home() {
               </div>
               <div className="flex items-center space-x-4">
                 <div className="text-white">
-                  Welcome, {user?.firstName} {user?.lastName}!
+                  Hi, {user?.firstName} {user?.lastName}!
                 </div>
                 <button
                   onClick={handleLogout}
@@ -43,7 +43,7 @@ export default function Home() {
           <div className="px-4 py-6 sm:px-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Dashboard Cards */}
-              <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
+              {/* <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -56,13 +56,15 @@ export default function Home() {
                         <dt className="text-sm font-medium text-gray-300 truncate">
                           Total Users
                         </dt>
-                        <dd className="text-lg font-medium text-white">1,234</dd>
+                        <dd className="text-lg font-medium text-white">
+                          1,234
+                        </dd>
                       </dl>
                     </div>
                   </div>
                 </div>
-              </div>
-
+              </div> */}
+              {/* 
               <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
                 <div className="p-5">
                   <div className="flex items-center">
@@ -76,14 +78,16 @@ export default function Home() {
                         <dt className="text-sm font-medium text-gray-300 truncate">
                           Revenue
                         </dt>
-                        <dd className="text-lg font-medium text-white">$12,345</dd>
+                        <dd className="text-lg font-medium text-white">
+                          $12,345
+                        </dd>
                       </dl>
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
+              {/* <div className="bg-gray-800 overflow-hidden shadow rounded-lg">
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -101,11 +105,11 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Welcome Section */}
-            <div className="mt-8">
+            {/* <div className="mt-8">
               <div className="bg-gray-800 shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <h3 className="text-lg leading-6 font-medium text-white">
@@ -113,7 +117,7 @@ export default function Home() {
                   </h3>
                   <div className="mt-2 max-w-xl text-sm text-gray-300">
                     <p>
-                      You have successfully logged in to your secure dashboard. 
+                      You have successfully logged in to your secure dashboard.
                       This is a protected route that requires authentication.
                     </p>
                   </div>
@@ -123,15 +127,22 @@ export default function Home() {
                         Your Profile Information:
                       </h4>
                       <div className="text-gray-300 space-y-1">
-                        <p><strong>Name:</strong> {user?.firstName} {user?.lastName}</p>
-                        <p><strong>Email:</strong> {user?.email}</p>
-                        <p><strong>User ID:</strong> {user?.id}</p>
+                        <p>
+                          <strong>Name:</strong> {user?.firstName}{" "}
+                          {user?.lastName}
+                        </p>
+                        <p>
+                          <strong>Email:</strong> {user?.email}
+                        </p>
+                        <p>
+                          <strong>User ID:</strong> {user?.id}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </main>
       </div>

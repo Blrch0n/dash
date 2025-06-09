@@ -12,7 +12,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white flex items-center justify-between p-4">
+    <header className="bg-white flex items-center justify-between p-4 shadow-md border-b">
       <div className="relative">
         <input
           type="text"

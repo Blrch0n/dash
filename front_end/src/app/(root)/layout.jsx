@@ -6,7 +6,7 @@ export default function RootLayout({ children }) {
   return (
     <section className="flex h-screen w-full">
       <SiderBar />
-      <div className="w-full h-full  flex flex-col">
+      <div className="w-full h-full flex flex-col">
         <Header />
         <main className="w-full h-full"> {children}</main>
         <Footer />

@@ -15,7 +15,7 @@ const SignUpPage = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const router = useRouter();
   const { login: authLogin } = useAuth();
 
@@ -55,11 +55,11 @@ const SignUpPage = () => {
     try {
       // Register the user
       registerUser(formData);
-      
+
       // Automatically log them in
       const { user } = login(formData.email, formData.password);
       authLogin(user);
-      
+
       router.push("/"); // Redirect to dashboard
     } catch (err) {
       setError(err.message);
@@ -74,7 +74,7 @@ const SignUpPage = () => {
         <h2 className="text-2xl font-bold text-center mb-6 text-white">
           Sign Up
         </h2>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
             {error}
@@ -186,7 +186,10 @@ const SignUpPage = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-400 text-sm">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link
+              href="/login"
+              className="text-blue-400 hover:text-blue-300 font-medium"
+            >
               Login here
             </Link>
           </p>

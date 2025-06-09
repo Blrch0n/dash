@@ -12,7 +12,7 @@ const LoginPage = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const router = useRouter();
   const { login: authLogin } = useAuth();
 
@@ -46,13 +46,14 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
-  };  return (
+  };
+  return (
     <div className="h-fit flex items-center justify-center ">
       <div className="bg-gray-800/50 backdrop-blur-md p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700/50">
         <h2 className="text-2xl font-bold text-center mb-6 text-white">
           Login
         </h2>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
             {error}
@@ -108,12 +109,17 @@ const LoginPage = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-400 text-sm">
             Don't have an account?{" "}
-            <Link href="/sign-up" className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link
+              href="/sign-up"
+              className="text-blue-400 hover:text-blue-300 font-medium"
+            >
               Sign up here
             </Link>
           </p>
           <div className="mt-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-400 text-xs">
-            <p><strong>Demo Account:</strong></p>
+            <p>
+              <strong>Demo Account:</strong>
+            </p>
             <p>Email: admin@example.com</p>
             <p>Password: admin123</p>
           </div>
