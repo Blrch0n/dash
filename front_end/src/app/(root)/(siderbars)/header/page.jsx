@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { IoMenu } from "react-icons/io5";
 
 const headerInfo = {
   title: "Header",
@@ -18,12 +19,13 @@ const DEFAULT_LABELS = [
 ];
 
 const DEFAULT_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"; // Default logo
+  "https://zemez.io/html/wp-content/uploads/sites/9/2017/10/logo.png"; // Default logo
 
 const page = () => {
   const [viewMode, setViewMode] = useState("desktop"); // desktop or mobile
   const [labels, setLabels] = useState(DEFAULT_LABELS);
   const [image, setImage] = useState(DEFAULT_IMAGE);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLabelChange = (index, value) => {
     const newLabels = [...labels];
@@ -49,7 +51,7 @@ const page = () => {
       {/* Header */}
       <header
         className={`bg-blue-600 text-white p-4 flex items-center ${
-          isMobile ? "flex-col gap-2" : "flex-row justify-between"
+          isMobile ? "justify-between" : "flex-row justify-between"
         }`}
       >
         {/* Logo/Image */}
@@ -57,33 +59,59 @@ const page = () => {
           <img
             src={image}
             alt="Logo"
-            className={`rounded ${isMobile ? "mb-2" : "mr-4"}`}
+            className="rounded"
             style={{
-              objectFit: "contain",
+              objectFit: "cover",
+              objectPosition: "left center",
               background: "#fff",
-              width: "180px",
-              height: "50px",
+              width: isMobile ? "120px" : "180px",
+              height: isMobile ? "35px" : "50px",
             }}
           />
         </div>
 
-        {/* Navigation Links */}
-        <nav
-          className={`${
-            isMobile ? "text-sm" : "text-base"
-          } flex flex-wrap gap-4`}
-        >
-          {labels.map((item, index) => (
-            <a
-              key={index}
-              href="#"
-              className="hover:underline cursor-pointer px-2 py-1 rounded hover:bg-blue-700 transition"
-            >
-              {item}
-            </a>
-          ))}
-        </nav>
+        {/* Desktop Navigation Links */}
+        {!isMobile && (
+          <nav className="text-base flex flex-wrap gap-4">
+            {labels.map((item, index) => (
+              <a
+                key={index}
+                href="#"
+                className="hover:underline cursor-pointer px-2 py-1 rounded hover:bg-blue-700 transition"
+              >
+                {item}
+              </a>
+            ))}
+          </nav>
+        )}
+
+        {/* Mobile Menu Toggle */}
+        {isMobile && (
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded hover:bg-blue-700 transition"
+          >
+            <IoMenu size={24} />
+          </button>
+        )}
       </header>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobile && isMobileMenuOpen && (
+        <div className="bg-blue-600 text-white">
+          <nav className="flex flex-col">
+            {labels.map((item, index) => (
+              <a
+                key={index}
+                href="#"
+                className="px-4 py-3 hover:bg-blue-700 transition border-b border-blue-500 last:border-b-0"
+              >
+                {item}
+              </a>
+            ))}
+          </nav>
+        </div>
+      )}
 
       {/* Sample content area to show header in context */}
       <div className="p-8 bg-gray-50 min-h-32">
@@ -166,8 +194,10 @@ const page = () => {
             <img
               src={image}
               alt="Logo Preview"
-              className="rounded bg-gray-100 object-contain"
+              className="rounded bg-gray-100"
               style={{
+                objectFit: "cover",
+                objectPosition: "left center",
                 width: "180px",
                 height: "50px",
               }}
