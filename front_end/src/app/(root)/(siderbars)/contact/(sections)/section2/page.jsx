@@ -1,119 +1,68 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const section4Info = {
-  title: "Section 4",
+  title: "Section 17",
   content:
-    "Section 4 нь Technologies хэсэг бөгөөд таны ашигладаг технологи болон багажуудыг харуулна.",
-  key: "section4",
+    "Section 17 нь Call to Action хэсэг бөгөөд хэрэглэгчдийг үйлдэл хийхэд уриална.",
+  key: "section17",
 };
 
-const DEFAULT_SECTION4_DATA = {
-  title: "Our Technologies",
-  subtitle:
-    "Cutting-edge tools and technologies we use to deliver exceptional results.",
-  projects: [
-    {
-      id: 1,
-      title: "React.js",
-      category: "Frontend Framework",
-      tags: ["JavaScript", "UI", "Components"],
-      description: "Modern frontend development",
-      image:
-        "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Node.js",
-      category: "Backend Runtime",
-      tags: ["JavaScript", "Server", "API"],
-      description: "Server-side development",
-      image:
-        "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop",
-    },
-    {
-      id: 3,
-      title: "MongoDB",
-      category: "Database",
-      tags: ["NoSQL", "Database", "Storage"],
-      description: "Modern database solution",
-      image:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    },
-    {
-      id: 4,
-      title: "AWS",
-      category: "Cloud Platform",
-      tags: ["Cloud", "Hosting", "Scalability"],
-      description: "Cloud infrastructure",
-      image:
-        "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop",
-    },
-    {
-      id: 5,
-      title: "Docker",
-      category: "Containerization",
-      tags: ["DevOps", "Deployment"],
-      description: "Container management",
-      image:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-    },
-    {
-      id: 6,
-      title: "Git",
-      category: "Version Control",
-      tags: ["VCS"],
-      description: "Code version control",
-      image:
-        "https://images.unsplash.com/photo-1559028006-448665bd7c7f?w=400&h=300&fit=crop",
-    },
-    {
-      id: 7,
-      title: "TypeScript",
-      category: "Programming Language",
-      tags: ["JavaScript", "Types", "Development"],
-      description: "Type-safe development",
-      image:
-        "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop",
-    },
-    {
-      id: 8,
-      title: "GraphQL",
-      category: "API Technology",
-      tags: ["API", "Query", "Data"],
-      description: "Modern API development",
-      image:
-        "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400&h=300&fit=crop",
-    },
-  ],
+const DEFAULT_SECTION17_DATA = {
+  backgroundImage:
+    "https://wallpapers.com/images/featured/8k-e16w8b36gngra7a4.jpg",
+  smallText: "Want to be our client?",
+  mainHeading: "No subscription, you only pay once.",
+  buttonText: "Purchase theme",
+  buttonLink: "/",
+};
+
+const Section17Component = ({ data, isMobile }) => {
+  const router = useRouter();
+
+  return (
+    <div
+      className={`w-full h-[650px] sm:h-[500px] xs:h-[400px] relative bg-cover flex items-center bg-fixed justify-center bg-center px-4 ${
+        isMobile ? "h-[400px]" : ""
+      }`}
+      style={{ backgroundImage: `url(${data.backgroundImage})` }}
+    >
+      <div className="absolute inset-0 bg-[#00000034]"></div>
+      <div className="relative text-white flex flex-col w-full max-w-[500px] sm:max-w-[400px] xs:max-w-[320px] items-center justify-center text-center gap-4 sm:gap-3 xs:gap-2">
+        <p className="text-[14px] sm:text-[13px] xs:text-[12px]">
+          {data.smallText}
+        </p>
+        <h2 className="text-[32px] sm:text-[40px] md:text-[45px] xs:text-[28px] leading-tight">
+          {data.mainHeading}
+        </h2>
+        <button
+          style={{
+            background: "linear-gradient(to right, #3452ff 0%, #ad3ed8 100%)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+          onClick={() => router.push(data.buttonLink)}
+          className="py-3 px-8 sm:py-2.5 sm:px-6 xs:py-2 xs:px-4 text-[16px] sm:text-[14px] xs:text-[13px] font-medium hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-200"
+        >
+          {data.buttonText}
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const page = () => {
   const [viewMode, setViewMode] = useState("desktop");
-  const [section4Data, setSection4Data] = useState(DEFAULT_SECTION4_DATA);
+  const [section17Data, setSection17Data] = useState(DEFAULT_SECTION17_DATA);
 
-  const handleTitleChange = (field, value) => {
-    setSection4Data((prev) => ({
+  const handleDataChange = (field, value) => {
+    setSection17Data((prev) => ({
       ...prev,
       [field]: value,
     }));
-  };
-
-  const handleProjectChange = (index, field, value) => {
-    setSection4Data((prev) => ({
-      ...prev,
-      projects: prev.projects.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      ),
-    }));
-  };
-
-  const handleTagsChange = (index, tagsString) => {
-    const tags = tagsString
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag);
-    handleProjectChange(index, "tags", tags);
   };
 
   const PreviewComponent = ({ isMobile }) => (
@@ -122,74 +71,7 @@ const page = () => {
         isMobile ? "w-80 mx-auto" : "w-full"
       }`}
     >
-      <section className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 p-8 min-h-[800px]">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {section4Data.title}
-          </h1>
-          <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            {section4Data.subtitle}
-          </p>
-        </div>
-
-        {/* Projects Grid */}
-        <div
-          className={`grid ${
-            isMobile
-              ? "grid-cols-1 gap-6"
-              : "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          }`}
-        >
-          {section4Data.projects.map((project, index) => (
-            <div
-              key={project.id}
-              className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
-            >
-              {/* Project Image */}
-              <div className="relative h-48 bg-gradient-to-br from-blue-200 to-purple-200 overflow-hidden">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
-                  }}
-                />
-                <div className="hidden w-full h-full items-center justify-center text-gray-500 absolute inset-0">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">🖼️</div>
-                    <div>Image Placeholder</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Project Info */}
-              <div className="p-4">
-                <div className="mb-2">
-                  <span className="text-xs text-blue-600 font-medium">
-                    {project.category}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">
-                  {project.title}
-                </h3>
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {project.tags.map((tag, tagIndex) => (
-                    <span
-                      key={tagIndex}
-                      className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <Section17Component data={section17Data} isMobile={isMobile} />
     </div>
   );
 
@@ -240,7 +122,7 @@ const page = () => {
       {/* Editor Section */}
       <div className="h-full w-[30%] bg-white rounded-lg p-4 overflow-auto">
         <h2 className="text-xl font-bold mb-4 text-gray-800">
-          Section 4 засварлах
+          Section 17 засварлах
         </h2>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {section4Info.title}
@@ -248,87 +130,76 @@ const page = () => {
         <p className="text-xs text-gray-500 mb-4">{section4Info.content}</p>
 
         <div className="space-y-6">
-          {/* Header Section */}
+          {/* Background Image */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Header Content
+              Background Image
             </h3>
             <input
               type="text"
-              value={section4Data.title}
-              onChange={(e) => handleTitleChange("title", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-              placeholder="Section title"
-            />
-            <textarea
-              value={section4Data.subtitle}
-              onChange={(e) => handleTitleChange("subtitle", e.target.value)}
+              value={section17Data.backgroundImage}
+              onChange={(e) =>
+                handleDataChange("backgroundImage", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Section subtitle"
+              placeholder="Background image URL"
             />
           </div>
 
-          {/* Projects Section */}
+          {/* Small Text */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Projects ({section4Data.projects.length})
+              Small Text
             </h3>
-            <div className="max-h-96 overflow-y-auto space-y-4">
-              {section4Data.projects.map((project, index) => (
-                <div
-                  key={project.id}
-                  className="border border-gray-200 rounded-md p-3"
-                >
-                  <h4 className="text-xs font-medium text-gray-600 mb-2">
-                    Project {index + 1}
-                  </h4>
-                  <input
-                    type="text"
-                    value={project.title}
-                    onChange={(e) =>
-                      handleProjectChange(index, "title", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    placeholder="Project title"
-                  />
-                  <input
-                    type="text"
-                    value={project.category}
-                    onChange={(e) =>
-                      handleProjectChange(index, "category", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    placeholder="Project category"
-                  />
-                  <input
-                    type="text"
-                    value={project.tags.join(", ")}
-                    onChange={(e) => handleTagsChange(index, e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    placeholder="Tags (comma separated)"
-                  />
-                  <textarea
-                    value={project.description}
-                    onChange={(e) =>
-                      handleProjectChange(index, "description", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-                    rows="2"
-                    placeholder="Project description"
-                  />
-                  <input
-                    type="text"
-                    value={project.image}
-                    onChange={(e) =>
-                      handleProjectChange(index, "image", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Image URL"
-                  />
-                </div>
-              ))}
-            </div>
+            <input
+              type="text"
+              value={section17Data.smallText}
+              onChange={(e) => handleDataChange("smallText", e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Small descriptive text"
+            />
+          </div>
+
+          {/* Main Heading */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Main Heading
+            </h3>
+            <textarea
+              value={section17Data.mainHeading}
+              onChange={(e) => handleDataChange("mainHeading", e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows="3"
+              placeholder="Main heading text"
+            />
+          </div>
+
+          {/* Button Text */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Button Text
+            </h3>
+            <input
+              type="text"
+              value={section17Data.buttonText}
+              onChange={(e) => handleDataChange("buttonText", e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Button text"
+            />
+          </div>
+
+          {/* Button Link */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Button Link
+            </h3>
+            <input
+              type="text"
+              value={section17Data.buttonLink}
+              onChange={(e) => handleDataChange("buttonLink", e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Button link URL"
+            />
           </div>
         </div>
 

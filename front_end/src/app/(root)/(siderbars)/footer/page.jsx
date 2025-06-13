@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const footerInfo = {
   title: "Footer",
@@ -47,23 +47,154 @@ const DEFAULT_FOOTER_DATA = {
   copyright: "Powered by Enside - Premium HTML Template",
 };
 
+// Default website configuration
+const defaultWebsiteConfig = {
+  primaryColor: "#3B82F6",
+  secondaryColor: "#1E40AF",
+  accentColor: "#EF4444",
+  backgroundColor: "#FFFFFF",
+  textColor: "#1F2937",
+  scrolledBgColor: "#FFFFFF",
+  scrolledTextColor: "#1F2937",
+  hoverColor: "#3B82F6",
+  borderColor: "#E5E7EB",
+  footerData: DEFAULT_FOOTER_DATA,
+};
+
+// Helper function to load configuration from localStorage
+const loadConfigFromStorage = () => {
+  if (typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem("websiteConfig");
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error("Error loading config from localStorage:", error);
+    }
+  }
+  return defaultWebsiteConfig;
+};
+
+// Helper function to save configuration to localStorage
+const saveConfigToStorage = (config) => {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("websiteConfig", JSON.stringify(config));
+    } catch (error) {
+      console.error("Error saving config to localStorage:", error);
+    }
+  }
+};
+
 const page = () => {
   const [viewMode, setViewMode] = useState("desktop");
+  const [isClient, setIsClient] = useState(false);
+
+  // Initialize with default configuration
+  const [websiteConfig, setWebsiteConfig] = useState(defaultWebsiteConfig);
   const [footerData, setFooterData] = useState(DEFAULT_FOOTER_DATA);
+
+  // Color states
+  const [primaryColor, setPrimaryColor] = useState(
+    defaultWebsiteConfig.primaryColor
+  );
+  const [secondaryColor, setSecondaryColor] = useState(
+    defaultWebsiteConfig.secondaryColor
+  );
+  const [accentColor, setAccentColor] = useState(
+    defaultWebsiteConfig.accentColor
+  );
+  const [textColor, setTextColor] = useState(defaultWebsiteConfig.textColor);
+
+  // Load configuration from localStorage after component mounts
+  useEffect(() => {
+    setIsClient(true);
+
+    const loadedConfig = loadConfigFromStorage();
+    setWebsiteConfig(loadedConfig);
+    setFooterData(loadedConfig.footerData || DEFAULT_FOOTER_DATA);
+
+    // Update color states
+    setPrimaryColor(loadedConfig.primaryColor);
+    setSecondaryColor(loadedConfig.secondaryColor);
+    setAccentColor(loadedConfig.accentColor);
+    setTextColor(loadedConfig.textColor);
+  }, []);
+
+  // Auto-save function for footer data
+  const saveFooterConfig = () => {
+    if (!isClient) return;
+
+    const updatedConfig = {
+      ...websiteConfig,
+      footerData,
+    };
+
+    setWebsiteConfig(updatedConfig);
+    saveConfigToStorage(updatedConfig);
+
+    // Dispatch event to notify other pages
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("websiteConfigUpdate", {
+          detail: updatedConfig,
+        })
+      );
+    }
+  };
+
+  // Auto-save when footerData changes
+  useEffect(() => {
+    if (isClient) {
+      saveFooterConfig();
+    }
+  }, [footerData, isClient]);
+
+  // Listen for configuration updates from other pages
+  useEffect(() => {
+    if (!isClient) return;
+
+    const handleConfigUpdate = (event) => {
+      const updatedConfig = event.detail;
+      setWebsiteConfig(updatedConfig);
+
+      // Update color states
+      setPrimaryColor(updatedConfig.primaryColor);
+      setSecondaryColor(updatedConfig.secondaryColor);
+      setAccentColor(updatedConfig.accentColor);
+      setTextColor(updatedConfig.textColor);
+
+      // Update footer data if it exists in the config
+      if (updatedConfig.footerData) {
+        setFooterData(updatedConfig.footerData);
+      }
+    };
+
+    const handleStorageChange = (event) => {
+      if (event.key === "websiteConfig") {
+        try {
+          const newConfig = JSON.parse(event.newValue);
+          handleConfigUpdate({ detail: newConfig });
+        } catch (error) {
+          console.error("Error parsing storage change:", error);
+        }
+      }
+    };
+
+    window.addEventListener("websiteConfigUpdate", handleConfigUpdate);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("websiteConfigUpdate", handleConfigUpdate);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [isClient]);
 
   const handleAboutChange = (value) => {
     setFooterData((prev) => ({
       ...prev,
       about: { ...prev.about, content: value },
-    }));
-  };
-
-  const handleNewsChange = (index, field, value) => {
-    const newNews = [...footerData.news.items];
-    newNews[index] = { ...newNews[index], [field]: value };
-    setFooterData((prev) => ({
-      ...prev,
-      news: { ...prev.news, items: newNews },
     }));
   };
 
@@ -83,25 +214,53 @@ const page = () => {
     }));
   };
 
+  const handleCopyrightChange = (value) => {
+    setFooterData((prev) => ({
+      ...prev,
+      copyright: value,
+    }));
+  };
+
+  // Show loading state until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <div className="w-full h-full flex gap-5 bg-gray-50 p-5">
+        <div className="h-full w-[70%] bg-white rounded-lg p-4 overflow-auto">
+          <div className="flex justify-center items-center h-full">
+            <div className="text-gray-500">Loading...</div>
+          </div>
+        </div>
+        <div className="h-full w-[30%] bg-white rounded-lg p-4 overflow-auto">
+          <div className="flex justify-center items-center h-full">
+            <div className="text-gray-500">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const PreviewComponent = ({ isMobile }) => (
     <div
       className={`bg-white border rounded-lg overflow-hidden shadow-lg ${
         isMobile ? "w-80 mx-auto" : "w-full"
       }`}
+      style={{ borderColor: websiteConfig.borderColor }}
     >
-      <footer className="bg-gray-800 text-white p-6">
+      <footer className="text-white p-6" style={{ backgroundColor: textColor }}>
         <div
           className={`grid gap-6 ${isMobile ? "grid-cols-1" : "grid-cols-4"}`}
         >
           {/* About Section */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-blue-400">
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: primaryColor }}
+            >
               {footerData.about.title}
             </h3>
             <p
-              className={`text-gray-300 ${
-                isMobile ? "text-sm" : "text-sm"
-              } leading-relaxed`}
+              className={`${isMobile ? "text-sm" : "text-sm"} leading-relaxed`}
+              style={{ color: `${websiteConfig.backgroundColor}CC` }}
             >
               {footerData.about.content}
             </p>
@@ -109,16 +268,33 @@ const page = () => {
 
           {/* Recent News Section */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-blue-400">
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: primaryColor }}
+            >
               {footerData.news.title}
             </h3>
             <div className="space-y-2">
               {footerData.news.items.map((item, index) => (
                 <div key={index}>
-                  <p className="text-gray-300 text-sm hover:text-white cursor-pointer transition">
+                  <p
+                    className="text-sm hover:text-white cursor-pointer transition"
+                    style={{ color: `${websiteConfig.backgroundColor}CC` }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.color = websiteConfig.backgroundColor)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.color = `${websiteConfig.backgroundColor}CC`)
+                    }
+                  >
                     {item.title}
                   </p>
-                  <p className="text-gray-500 text-xs">{item.date}</p>
+                  <p
+                    className="text-xs"
+                    style={{ color: `${websiteConfig.backgroundColor}80` }}
+                  >
+                    {item.date}
+                  </p>
                 </div>
               ))}
             </div>
@@ -126,7 +302,10 @@ const page = () => {
 
           {/* Useful Links Section */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-blue-400">
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: primaryColor }}
+            >
               {footerData.links.title}
             </h3>
             <ul className="space-y-1">
@@ -134,7 +313,14 @@ const page = () => {
                 <li key={index}>
                   <a
                     href="#"
-                    className="text-gray-300 text-sm hover:text-white transition"
+                    className="text-sm transition cursor-pointer"
+                    style={{ color: `${websiteConfig.backgroundColor}CC` }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.color = websiteConfig.backgroundColor)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.color = `${websiteConfig.backgroundColor}CC`)
+                    }
                   >
                     {link}
                   </a>
@@ -145,19 +331,31 @@ const page = () => {
 
           {/* Contact Section */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-blue-400">
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: primaryColor }}
+            >
               {footerData.contact.title}
             </h3>
-            <p className="text-gray-300 text-sm">
+            <p
+              className="text-sm"
+              style={{ color: `${websiteConfig.backgroundColor}CC` }}
+            >
               {footerData.contact.description}
             </p>
             <div className="space-y-1">
-              <p className="text-gray-300 text-sm">
-                <span className="text-blue-400">T:</span>{" "}
+              <p
+                className="text-sm"
+                style={{ color: `${websiteConfig.backgroundColor}CC` }}
+              >
+                <span style={{ color: primaryColor }}>T:</span>{" "}
                 {footerData.contact.phone}
               </p>
-              <p className="text-gray-300 text-sm">
-                <span className="text-blue-400">E:</span>{" "}
+              <p
+                className="text-sm"
+                style={{ color: `${websiteConfig.backgroundColor}CC` }}
+              >
+                <span style={{ color: primaryColor }}>E:</span>{" "}
                 {footerData.contact.email}
               </p>
             </div>
@@ -165,8 +363,16 @@ const page = () => {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-700 mt-6 pt-4 text-center">
-          <p className="text-gray-400 text-sm">{footerData.copyright}</p>
+        <div
+          className="border-t mt-6 pt-4 text-center"
+          style={{ borderColor: `${websiteConfig.backgroundColor}40` }}
+        >
+          <p
+            className="text-sm"
+            style={{ color: `${websiteConfig.backgroundColor}99` }}
+          >
+            {footerData.copyright}
+          </p>
         </div>
       </footer>
     </div>
@@ -183,9 +389,13 @@ const page = () => {
               onClick={() => setViewMode("desktop")}
               className={`px-4 py-2 rounded-md transition-all ${
                 viewMode === "desktop"
-                  ? "bg-blue-600 text-white shadow-md"
+                  ? "text-white shadow-md"
                   : "text-gray-600 hover:text-gray-800"
               }`}
+              style={{
+                backgroundColor:
+                  viewMode === "desktop" ? primaryColor : "transparent",
+              }}
             >
               Desktop
             </button>
@@ -193,9 +403,13 @@ const page = () => {
               onClick={() => setViewMode("mobile")}
               className={`px-4 py-2 rounded-md transition-all ${
                 viewMode === "mobile"
-                  ? "bg-blue-600 text-white shadow-md"
+                  ? "text-white shadow-md"
                   : "text-gray-600 hover:text-gray-800"
               }`}
+              style={{
+                backgroundColor:
+                  viewMode === "mobile" ? primaryColor : "transparent",
+              }}
             >
               Mobile
             </button>
@@ -235,39 +449,14 @@ const page = () => {
             <textarea
               value={footerData.about.content}
               onChange={(e) => handleAboutChange(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+              style={{
+                "--tw-ring-color": primaryColor,
+                focusRingColor: primaryColor,
+              }}
               rows="3"
               placeholder="About content"
             />
-          </div>
-
-          {/* News Section */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Recent News
-            </h3>
-            {footerData.news.items.map((item, idx) => (
-              <div key={idx} className="space-y-2 mb-3">
-                <input
-                  type="text"
-                  value={item.title}
-                  onChange={(e) =>
-                    handleNewsChange(idx, "title", e.target.value)
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`News title ${idx + 1}`}
-                />
-                <input
-                  type="text"
-                  value={item.date}
-                  onChange={(e) =>
-                    handleNewsChange(idx, "date", e.target.value)
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Date"
-                />
-              </div>
-            ))}
           </div>
 
           {/* Links Section */}
@@ -281,7 +470,11 @@ const page = () => {
                 type="text"
                 value={link}
                 onChange={(e) => handleLinkChange(idx, e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent mb-2"
+                style={{
+                  "--tw-ring-color": primaryColor,
+                  focusRingColor: primaryColor,
+                }}
                 placeholder={`Link ${idx + 1}`}
               />
             ))}
@@ -297,7 +490,11 @@ const page = () => {
               onChange={(e) =>
                 handleContactChange("description", e.target.value)
               }
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent mb-2"
+              style={{
+                "--tw-ring-color": primaryColor,
+                focusRingColor: primaryColor,
+              }}
               rows="2"
               placeholder="Contact description"
             />
@@ -305,21 +502,88 @@ const page = () => {
               type="text"
               value={footerData.contact.phone}
               onChange={(e) => handleContactChange("phone", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent mb-2"
+              style={{
+                "--tw-ring-color": primaryColor,
+                focusRingColor: primaryColor,
+              }}
               placeholder="Phone number"
             />
             <input
               type="email"
               value={footerData.contact.email}
               onChange={(e) => handleContactChange("email", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+              style={{
+                "--tw-ring-color": primaryColor,
+                focusRingColor: primaryColor,
+              }}
               placeholder="Email address"
             />
+          </div>
+
+          {/* Copyright Section */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Copyright
+            </h3>
+            <input
+              type="text"
+              value={footerData.copyright}
+              onChange={(e) => handleCopyrightChange(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+              style={{
+                "--tw-ring-color": primaryColor,
+                focusRingColor: primaryColor,
+              }}
+              placeholder="Copyright text"
+            />
+          </div>
+
+          {/* Color Preview Section */}
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              Одоогийн өнгөний тохиргоо
+            </h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span>Primary:</span>
+                <div
+                  className="w-6 h-4 rounded border"
+                  style={{ backgroundColor: primaryColor }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Accent:</span>
+                <div
+                  className="w-6 h-4 rounded border"
+                  style={{ backgroundColor: accentColor }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Text:</span>
+                <div
+                  className="w-6 h-4 rounded border"
+                  style={{ backgroundColor: textColor }}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Өнгийг өөрчлөхийн тулд "General Info" хуудас руу очно уу.
+            </p>
           </div>
         </div>
 
         {/* Save Button */}
-        <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium mt-6">
+        <button
+          onClick={saveFooterConfig}
+          className="w-full text-white py-3 px-4 rounded-md transition-colors font-medium mt-6"
+          style={{ backgroundColor: primaryColor }}
+          onMouseEnter={(e) =>
+            (e.target.style.backgroundColor = secondaryColor)
+          }
+          onMouseLeave={(e) => (e.target.style.backgroundColor = primaryColor)}
+        >
           Хадгалах
         </button>
       </div>

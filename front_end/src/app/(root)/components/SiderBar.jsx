@@ -19,6 +19,7 @@ const sideBarMenu = [
     subMenu: [
       { title: "Header", link: "/header", subMenu: [] },
       { title: "Footer", link: "/footer", subMenu: [] },
+      { title: "Сайтын ерөнхий мэдээлэл", link: "/general-info", subMenu: [] },
       {
         title: "Бидний тухай",
         link: "/about",
