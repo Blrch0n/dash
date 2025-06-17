@@ -21,13 +21,24 @@ const DEFAULT_SECTION1_DATA = {
   mainText: "All you need is Enside, a modern & simple template",
   description:
     "We are the comprehensive design and technology partner for the digital age. We help businesses to stay relevant to their customers in the digital era by touching hearts and minds.",
-  // Add statistics data
+  // Add layout settings
+  layoutSettings: {
+    desktop: {
+      categoriesPerRow: 4,
+      statisticsPerRow: 3,
+    },
+    mobile: {
+      categoriesPerRow: 2,
+      statisticsPerRow: 1,
+    },
+  },
   statistics: {
     mainTitle: "We create human experience in a digital world",
     stats: [
       {
         number: "97",
-        label: "Percent of users recommend us to friends and family",
+        label:
+          "Percent of users recommend us recommend us to friends and family",
       },
       {
         number: "350",
@@ -173,267 +184,290 @@ const page = () => {
     }));
   };
 
-  const PreviewComponent = ({ isMobile }) => (
-    <div
-      className={`bg-white border rounded-lg overflow-hidden shadow-lg ${
-        isMobile ? "w-80 mx-auto" : "w-full"
-      }`}
-    >
-      <section className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-16 px-8 min-h-[800px]">
-        {/* Header */}
-        <div className="text-center mb-12 opacity-100">
-          <p className="text-gray-500 text-sm uppercase mb-2">TECHNOLOGY</p>
-          <h1 className="text-5xl font-bold mb-4 text-gray-800">
-            {section1Data.title}
-          </h1>
-          <div className="w-9 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-4 rounded-full"></div>
-          <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-            {section1Data.subtitle}
-          </p>
-        </div>
+  const handleLayoutChange = (setting, value) => {
+    setSection1Data((prev) => ({
+      ...prev,
+      layoutSettings: {
+        ...prev.layoutSettings,
+        [viewMode]: {
+          ...prev.layoutSettings[viewMode],
+          [setting]: parseInt(value),
+        },
+      },
+    }));
+  };
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div
-            className={`grid ${
-              isMobile ? "grid-cols-2" : "grid-cols-4"
-            } gap-2 p-4 bg-white rounded-lg shadow-md`}
-          >
-            {section1Data.categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveTab(category)}
-                className={`border py-3 px-4 min-w-[120px] rounded-lg text-sm font-medium transition-all duration-200 ease-in-out ${
-                  activeTab === category
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-transparent text-gray-700 border-gray-300 hover:bg-blue-600 hover:text-white hover:border-blue-600"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
+  const PreviewComponent = ({ isMobile }) => {
+    const currentLayout =
+      section1Data.layoutSettings[isMobile ? "mobile" : "desktop"];
+
+    return (
+      <div
+        className={`bg-white border rounded-lg overflow-hidden shadow-lg ${
+          isMobile ? "w-80 mx-auto" : "w-full"
+        }`}
+      >
+        <section className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-16 px-8 min-h-[800px]">
+          {/* Header */}
+          <div className="text-center mb-12 opacity-100">
+            <p className="text-gray-500 text-sm uppercase mb-2">TECHNOLOGY</p>
+            <h1 className="text-5xl font-bold mb-4 text-gray-800">
+              {section1Data.title}
+            </h1>
+            <div className="w-9 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-4 rounded-full"></div>
+            <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
+              {section1Data.subtitle}
+            </p>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div className="opacity-100 transform translate-y-0">
-          {/* ...existing tab content code... */}
-          {activeTab === "Prototypes" && (
+          {/* Tab Navigation */}
+          <div className="flex justify-center mb-8">
             <div
-              className={`max-w-6xl mx-auto flex ${
-                isMobile ? "flex-col" : "flex-row"
-              } items-center gap-8`}
+              className={`grid gap-2 p-4 bg-white rounded-lg shadow-md`}
+              style={{
+                gridTemplateColumns: `repeat(${currentLayout.categoriesPerRow}, minmax(0, 1fr))`,
+              }}
             >
-              {/* Left Content */}
-              <div
-                className={`${
-                  isMobile ? "w-full" : "w-2/5"
-                } flex flex-col gap-6`}
-              >
-                <h2 className="text-3xl font-bold text-gray-800">
-                  {section1Data.sections.Prototypes.leftContent.title}
-                </h2>
-                <p className="text-gray-600 leading-relaxed">
-                  {section1Data.sections.Prototypes.leftContent.description}
-                </p>
-              </div>
-
-              {/* Right Cards */}
-              <div
-                className={`${isMobile ? "w-full" : "w-3/5"} flex ${
-                  isMobile ? "flex-col" : "flex-row"
-                } gap-6`}
-              >
-                {section1Data.sections.Prototypes.rightContent.map(
-                  (card, index) => (
-                    <div
-                      key={index}
-                      className="relative w-full h-80 rounded-lg overflow-hidden shadow-lg hover:-translate-y-2 transition-transform duration-300"
-                      style={{
-                        backgroundImage: `url(${card.backgroundImage})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-[#00000080] bg-opacity-50"></div>
-                      <div className="relative z-10 p-8 h-full flex flex-col items-center justify-center text-center text-white">
-                        <div className="text-4xl mb-4">{card.icon}</div>
-                        <h3 className="text-xl font-bold mb-2">{card.title}</h3>
-                        <p className="text-sm">{card.subtitle}</p>
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {(activeTab === "Development" || activeTab === "Support") && (
-            <div
-              className={`max-w-6xl mx-auto flex ${
-                isMobile ? "flex-col" : "flex-row"
-              } items-center gap-8`}
-            >
-              {/* Left Content */}
-              <div
-                className={`${
-                  isMobile ? "w-full" : "w-2/5"
-                } flex flex-col gap-6`}
-              >
-                <h2 className="text-3xl font-bold text-gray-800">
-                  {section1Data.sections[activeTab].leftContent.title}
-                </h2>
-                <p className="text-gray-600 leading-relaxed">
-                  {section1Data.sections[activeTab].leftContent.description}
-                </p>
-              </div>
-
-              {/* Right Services Grid */}
-              <div
-                className={`${
-                  isMobile ? "w-full" : "w-3/5"
-                } grid grid-cols-1 sm:grid-cols-2 gap-6`}
-              >
-                {section1Data.sections[activeTab].services.map(
-                  (service, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-4 p-4 hover:-translate-y-1 transition-transform duration-300"
-                    >
-                      <div className="text-2xl text-blue-600 hover:scale-110 transition-transform duration-200">
-                        {service.icon}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                          {service.title}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {service.description}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === "Design" && (
-            <div
-              className={`max-w-6xl mx-auto flex ${
-                isMobile ? "flex-col" : "flex-row"
-              } items-center gap-8`}
-            >
-              {/* Left Content */}
-              <div
-                className={`${
-                  isMobile ? "w-full" : "w-1/3"
-                } flex flex-col gap-6`}
-              >
-                <h2 className="text-3xl font-bold text-gray-800">
-                  {section1Data.sections.Design.leftContent.title}
-                </h2>
-                <p className="text-gray-600 leading-relaxed">
-                  {section1Data.sections.Design.leftContent.description}
-                </p>
-              </div>
-
-              {/* Middle Services */}
-              <div
-                className={`${
-                  isMobile ? "w-full" : "w-1/3"
-                } flex flex-col gap-6`}
-              >
-                {section1Data.sections.Design.services.map((service, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-4 p-4 hover:-translate-y-1 transition-transform duration-300"
-                  >
-                    <div className="text-2xl text-blue-600 hover:scale-110 transition-transform duration-200">
-                      {service.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                        {service.title}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {service.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Right Card */}
-              <div className={`${isMobile ? "w-full" : "w-1/3"}`}>
-                <div
-                  className="relative w-full h-80 rounded-lg overflow-hidden shadow-lg hover:-translate-y-2 transition-transform duration-300"
-                  style={{
-                    backgroundImage: `url(${section1Data.sections.Design.rightCard.backgroundImage})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
+              {section1Data.categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveTab(category)}
+                  className={`border py-3 px-4 min-w-[120px] rounded-lg text-sm font-medium transition-all duration-200 ease-in-out ${
+                    activeTab === category
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-transparent text-gray-700 border-gray-300 hover:bg-blue-600 hover:text-white hover:border-blue-600"
+                  }`}
                 >
-                  <div className="absolute inset-0 bg-[#00000070] bg-opacity-50"></div>
-                  <div className="relative z-10 p-8 h-full flex flex-col items-center justify-center text-center text-white">
-                    <div className="text-4xl mb-4">
-                      {section1Data.sections.Design.rightCard.icon}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">
-                      {section1Data.sections.Design.rightCard.title}
-                    </h3>
-                    <p className="text-sm">
-                      {section1Data.sections.Design.rightCard.subtitle}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Statistics Section */}
-        <div className="mt-16 pt-16 border-t border-gray-200">
-          <div className="max-w-6xl mx-auto">
-            <h2
-              className={`${
-                isMobile ? "text-2xl" : "text-3xl"
-              } font-bold text-center mb-12 text-gray-800`}
-            >
-              {section1Data.statistics.mainTitle}
-            </h2>
-            <div
-              className={`grid ${
-                isMobile ? "grid-cols-1" : "grid-cols-3"
-              } gap-8`}
-            >
-              {section1Data.statistics.stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="text-center p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-                >
-                  <div
-                    className={`${
-                      isMobile ? "text-4xl" : "text-5xl"
-                    } font-bold text-blue-600 mb-4`}
-                  >
-                    {stat.number}
-                  </div>
-                  <p
-                    className={`${
-                      isMobile ? "text-sm" : "text-base"
-                    } text-gray-600 leading-relaxed`}
-                  >
-                    {stat.label}
-                  </p>
-                </div>
+                  {category}
+                </button>
               ))}
             </div>
           </div>
-        </div>
-      </section>
-    </div>
-  );
+
+          {/* Tab Content */}
+          <div className="opacity-100 transform translate-y-0">
+            {activeTab === "Prototypes" && (
+              <div
+                className={`max-w-6xl mx-auto flex ${
+                  isMobile ? "flex-col" : "flex-row"
+                } items-center gap-8`}
+              >
+                {/* Left Content */}
+                <div
+                  className={`${
+                    isMobile ? "w-full" : "w-2/5"
+                  } flex flex-col gap-6`}
+                >
+                  <h2 className="text-3xl font-bold text-gray-800">
+                    {section1Data.sections.Prototypes.leftContent.title}
+                  </h2>
+                  <p className="text-gray-600 leading-relaxed">
+                    {section1Data.sections.Prototypes.leftContent.description}
+                  </p>
+                </div>
+
+                {/* Right Cards */}
+                <div
+                  className={`${isMobile ? "w-full" : "w-3/5"} flex ${
+                    isMobile ? "flex-col" : "flex-row"
+                  } gap-6`}
+                >
+                  {section1Data.sections.Prototypes.rightContent.map(
+                    (card, index) => (
+                      <div
+                        key={index}
+                        className="relative w-full h-80 rounded-lg overflow-hidden shadow-lg hover:-translate-y-2 transition-transform duration-300"
+                        style={{
+                          backgroundImage: `url(${card.backgroundImage})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-[#00000080] bg-opacity-50"></div>
+                        <div className="relative z-10 p-8 h-full flex flex-col items-center justify-center text-center text-white">
+                          <div className="text-4xl mb-4">{card.icon}</div>
+                          <h3 className="text-xl font-bold mb-2">
+                            {card.title}
+                          </h3>
+                          <p className="text-sm">{card.subtitle}</p>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(activeTab === "Development" || activeTab === "Support") && (
+              <div
+                className={`max-w-6xl mx-auto flex ${
+                  isMobile ? "flex-col" : "flex-row"
+                } items-center gap-8`}
+              >
+                {/* Left Content */}
+                <div
+                  className={`${
+                    isMobile ? "w-full" : "w-2/5"
+                  } flex flex-col gap-6`}
+                >
+                  <h2 className="text-3xl font-bold text-gray-800">
+                    {section1Data.sections[activeTab].leftContent.title}
+                  </h2>
+                  <p className="text-gray-600 leading-relaxed">
+                    {section1Data.sections[activeTab].leftContent.description}
+                  </p>
+                </div>
+
+                {/* Right Services Grid */}
+                <div
+                  className={`${
+                    isMobile ? "w-full" : "w-3/5"
+                  } grid grid-cols-1 sm:grid-cols-2 gap-6`}
+                >
+                  {section1Data.sections[activeTab].services.map(
+                    (service, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-4 p-4 hover:-translate-y-1 transition-transform duration-300"
+                      >
+                        <div className="text-2xl text-blue-600 hover:scale-110 transition-transform duration-200">
+                          {service.icon}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                            {service.title}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {service.description}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Design" && (
+              <div
+                className={`max-w-6xl mx-auto flex ${
+                  isMobile ? "flex-col" : "flex-row"
+                } items-center gap-8`}
+              >
+                {/* Left Content */}
+                <div
+                  className={`${
+                    isMobile ? "w-full" : "w-1/3"
+                  } flex flex-col gap-6`}
+                >
+                  <h2 className="text-3xl font-bold text-gray-800">
+                    {section1Data.sections.Design.leftContent.title}
+                  </h2>
+                  <p className="text-gray-600 leading-relaxed">
+                    {section1Data.sections.Design.leftContent.description}
+                  </p>
+                </div>
+
+                {/* Middle Services */}
+                <div
+                  className={`${
+                    isMobile ? "w-full" : "w-1/3"
+                  } flex flex-col gap-6`}
+                >
+                  {section1Data.sections.Design.services.map(
+                    (service, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-4 p-4 hover:-translate-y-1 transition-transform duration-300"
+                      >
+                        <div className="text-2xl text-blue-600 hover:scale-110 transition-transform duration-200">
+                          {service.icon}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                            {service.title}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {service.description}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+
+                {/* Right Card */}
+                <div className={`${isMobile ? "w-full" : "w-1/3"}`}>
+                  <div
+                    className="relative w-full h-80 rounded-lg overflow-hidden shadow-lg hover:-translate-y-2 transition-transform duration-300"
+                    style={{
+                      backgroundImage: `url(${section1Data.sections.Design.rightCard.backgroundImage})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-[#00000070] bg-opacity-50"></div>
+                    <div className="relative z-10 p-8 h-full flex flex-col items-center justify-center text-center text-white">
+                      <div className="text-4xl mb-4">
+                        {section1Data.sections.Design.rightCard.icon}
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">
+                        {section1Data.sections.Design.rightCard.title}
+                      </h3>
+                      <p className="text-sm">
+                        {section1Data.sections.Design.rightCard.subtitle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Statistics Section */}
+          <div className="mt-16 pt-16 border-t border-gray-200">
+            <div className="max-w-6xl mx-auto">
+              <h2
+                className={`${
+                  isMobile ? "text-2xl" : "text-3xl"
+                } font-bold text-center mb-12 text-gray-800`}
+              >
+                {section1Data.statistics.mainTitle}
+              </h2>
+              <div
+                className={`grid gap-8`}
+                style={{
+                  gridTemplateColumns: `repeat(${currentLayout.statisticsPerRow}, minmax(0, 1fr))`,
+                }}
+              >
+                {section1Data.statistics.stats.map((stat, index) => (
+                  <div
+                    key={index}
+                    className="text-center p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+                  >
+                    <div
+                      className={`${
+                        isMobile ? "text-4xl" : "text-5xl"
+                      } font-bold text-blue-600 mb-4`}
+                    >
+                      {stat.number}
+                    </div>
+                    <p
+                      className={`${
+                        isMobile ? "text-sm" : "text-base"
+                      } text-gray-600 leading-relaxed`}
+                    >
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  };
 
   return (
     <div className="w-full h-full flex gap-5 bg-gray-50 p-5">
@@ -539,6 +573,48 @@ const page = () => {
             />
           </div>
 
+          {/* Layout Configuration */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Layout Settings ({viewMode})
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Categories per row:
+                </label>
+                <select
+                  value={section1Data.layoutSettings[viewMode].categoriesPerRow}
+                  onChange={(e) =>
+                    handleLayoutChange("categoriesPerRow", e.target.value)
+                  }
+                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value={1}>1 column</option>
+                  <option value={2}>2 columns</option>
+                  <option value={3}>3 columns</option>
+                  <option value={4}>4 columns</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Statistics per row:
+                </label>
+                <select
+                  value={section1Data.layoutSettings[viewMode].statisticsPerRow}
+                  onChange={(e) =>
+                    handleLayoutChange("statisticsPerRow", e.target.value)
+                  }
+                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value={1}>1 column</option>
+                  <option value={2}>2 columns</option>
+                  <option value={3}>3 columns</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* Statistics Section Editor */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">
@@ -606,43 +682,6 @@ const page = () => {
             ))}
           </div>
 
-          {/* Layout Configuration */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Layout Settings
-            </h3>
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2">
-                <span className="text-xs text-gray-600">
-                  Categories per row ({viewMode}):
-                </span>
-                <select
-                  value={viewMode === "mobile" ? 2 : 4}
-                  className="text-xs border border-gray-300 rounded px-2 py-1"
-                  disabled
-                >
-                  <option value={viewMode === "mobile" ? 2 : 4}>
-                    {viewMode === "mobile" ? "2 columns" : "4 columns"}
-                  </option>
-                </select>
-              </label>
-              <label className="flex items-center space-x-2">
-                <span className="text-xs text-gray-600">
-                  Statistics per row ({viewMode}):
-                </span>
-                <select
-                  value={viewMode === "mobile" ? 1 : 3}
-                  className="text-xs border border-gray-300 rounded px-2 py-1"
-                  disabled
-                >
-                  <option value={viewMode === "mobile" ? 1 : 3}>
-                    {viewMode === "mobile" ? "1 column" : "3 columns"}
-                  </option>
-                </select>
-              </label>
-            </div>
-          </div>
-
           {/* Active Tab Content Editor */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">
@@ -703,30 +742,20 @@ const page = () => {
               <p className="text-xs text-blue-700">
                 <strong>Current Layout ({viewMode}):</strong>
                 <br />
+                Categories:{" "}
+                {section1Data.layoutSettings[viewMode].categoriesPerRow} per row
+                <br />
+                Statistics:{" "}
+                {section1Data.layoutSettings[viewMode].statisticsPerRow} per row
+                <br />
                 {viewMode === "mobile"
-                  ? "Stacked vertically for mobile view"
+                  ? "Content stacked vertically for mobile view"
                   : activeTab === "Design"
                   ? "Three column layout (Left content | Services | Right card)"
                   : "Two column layout (Left content | Right content)"}
               </p>
             </div>
           </div>
-
-          {/* Mobile-specific adjustments note */}
-          {viewMode === "mobile" && (
-            <div className="bg-yellow-50 p-3 rounded-md">
-              <p className="text-xs text-yellow-700">
-                <strong>Mobile Optimizations:</strong>
-                <br />
-                • Categories: 2 per row
-                <br />
-                • Layout: Stacked vertically
-                <br />
-                • Cards: Full width
-                <br />• Statistics: 1 per row
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Save Button */}
