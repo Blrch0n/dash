@@ -1,8 +1,7 @@
 import axios from "axios";
 
 // API service for connecting to MongoDB Atlas backend
-const API_BASE_URL = "https://dash-zov2.onrender.com";
-
+const API_BASE_URL = "https://dash-zov2.onrender.com/api";
 // Create axios instance with default configuration
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
