@@ -1,264 +1,270 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Section = require('../models/Section');
-const { validateSection } = require('../middleware/validation');
-const { auth } = require('../middleware/auth');
+const Section = require("../models/Section");
 
-// Get all sections for a specific page
-router.get('/:pageType', async (req, res) => {
+// Get all sections
+router.get("/", async (req, res) => {
   try {
-    const { pageType } = req.params;
-    const { sectionType, active } = req.query;
-    
-    let query = { pageType };
-    
-    if (sectionType) {
-      query.sectionType = sectionType;
-    }
-    
-    if (active !== undefined) {
-      query.isActive = active === 'true';
-    }
-    
-    const sections = await Section.find(query).sort({ order: 1, createdAt: 1 });
-    
+    const sections = await Section.find().sort({ sectionName: 1, order: 1 });
     res.json({
       success: true,
       data: sections,
-      count: sections.length
     });
   } catch (error) {
-    console.error('Error fetching sections:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch sections',
-      error: error.message
+      message: "Error fetching sections",
+      error: error.message,
     });
   }
 });
 
-// Get a specific section
-router.get('/:pageType/:sectionType', async (req, res) => {
+// Get sections by section name
+router.get("/:sectionName", async (req, res) => {
   try {
-    const { pageType, sectionType } = req.params;
-    
-    const section = await Section.findOne({ pageType, sectionType });
-    
+    const { sectionName } = req.params;
+    const sections = await Section.find({ sectionName }).sort({ order: 1 });
+
+    if (sections.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No sections found for ${sectionName}`,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: sections,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching section",
+      error: error.message,
+    });
+  }
+});
+
+// Get specific subsection
+router.get("/:sectionName/:subsectionName", async (req, res) => {
+  try {
+    const { sectionName, subsectionName } = req.params;
+    const section = await Section.findOne({ sectionName, subsectionName });
+
     if (!section) {
       return res.status(404).json({
         success: false,
-        message: 'Section not found'
+        message: `Section ${sectionName}/${subsectionName} not found`,
       });
     }
-    
+
     res.json({
       success: true,
-      data: section
+      data: section,
     });
   } catch (error) {
-    console.error('Error fetching section:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch section',
-      error: error.message
+      message: "Error fetching section",
+      error: error.message,
     });
   }
 });
 
-// Create a new section
-router.post('/:pageType/:sectionType', auth, validateSection, async (req, res) => {
+// Create or update a section
+router.post("/", async (req, res) => {
   try {
-    const { pageType, sectionType } = req.params;
-    const sectionData = {
-      ...req.body,
-      pageType,
-      sectionType,
-      createdBy: req.user?.id
-    };
-    
+    const {
+      sectionName,
+      subsectionName,
+      title,
+      content,
+      data,
+      isActive,
+      order,
+    } = req.body;
+
+    // Validate required fields
+    if (!sectionName) {
+      return res.status(400).json({
+        success: false,
+        message: "sectionName is required",
+      });
+    }
+
     // Check if section already exists
-    const existingSection = await Section.findOne({ pageType, sectionType });
+    const existingSection = await Section.findOne({
+      sectionName,
+      subsectionName: subsectionName || "main",
+    });
+
     if (existingSection) {
-      return res.status(409).json({
-        success: false,
-        message: 'Section already exists for this page and type'
+      // Update existing section
+      existingSection.title = title || existingSection.title;
+      existingSection.content = content || existingSection.content;
+      existingSection.data = data || existingSection.data;
+      existingSection.isActive =
+        isActive !== undefined ? isActive : existingSection.isActive;
+      existingSection.order =
+        order !== undefined ? order : existingSection.order;
+      existingSection.lastUpdated = new Date();
+
+      await existingSection.save();
+
+      res.json({
+        success: true,
+        message: "Section updated successfully",
+        data: existingSection,
+      });
+    } else {
+      // Create new section
+      const newSection = new Section({
+        sectionName,
+        subsectionName: subsectionName || "main",
+        title: title || "",
+        content: content || "",
+        data: data || {},
+        isActive: isActive !== undefined ? isActive : true,
+        order: order || 0,
+      });
+
+      await newSection.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Section created successfully",
+        data: newSection,
       });
     }
-    
-    const section = new Section(sectionData);
-    await section.save();
-    
-    // Emit real-time update
-    const io = req.app.get('io');
-    io.to(`${pageType}-${sectionType}`).emit('section-created', {
-      pageType,
-      sectionType,
-      data: section
-    });
-    
-    res.status(201).json({
-      success: true,
-      message: 'Section created successfully',
-      data: section
-    });
   } catch (error) {
-    console.error('Error creating section:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create section',
-      error: error.message
-    });
+    if (error.code === 11000) {
+      res.status(400).json({
+        success: false,
+        message: "Section with this name and subsection already exists",
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Error creating/updating section",
+        error: error.message,
+      });
+    }
   }
 });
 
-// Update a section
-router.put('/:pageType/:sectionType', auth, validateSection, async (req, res) => {
+// Update section by ID
+router.put("/:id", async (req, res) => {
   try {
-    const { pageType, sectionType } = req.params;
-    
-    const section = await Section.findOneAndUpdate(
-      { pageType, sectionType },
-      { ...req.body, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
-    
+    const { id } = req.params;
+    const updateData = { ...req.body, lastUpdated: new Date() };
+
+    const section = await Section.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
     if (!section) {
       return res.status(404).json({
         success: false,
-        message: 'Section not found'
+        message: "Section not found",
       });
     }
-    
-    // Emit real-time update
-    const io = req.app.get('io');
-    io.to(`${pageType}-${sectionType}`).emit('section-updated', {
-      pageType,
-      sectionType,
-      data: section
-    });
-    
+
     res.json({
       success: true,
-      message: 'Section updated successfully',
-      data: section
+      message: "Section updated successfully",
+      data: section,
     });
   } catch (error) {
-    console.error('Error updating section:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update section',
-      error: error.message
+      message: "Error updating section",
+      error: error.message,
     });
   }
 });
 
-// Delete a section
-router.delete('/:pageType/:sectionType', auth, async (req, res) => {
+// Delete section by ID
+router.delete("/:id", async (req, res) => {
   try {
-    const { pageType, sectionType } = req.params;
-    
-    const section = await Section.findOneAndDelete({ pageType, sectionType });
-    
+    const { id } = req.params;
+    const section = await Section.findByIdAndDelete(id);
+
     if (!section) {
       return res.status(404).json({
         success: false,
-        message: 'Section not found'
+        message: "Section not found",
       });
     }
-    
-    // Emit real-time update
-    const io = req.app.get('io');
-    io.to(`${pageType}-${sectionType}`).emit('section-deleted', {
-      pageType,
-      sectionType
-    });
-    
+
     res.json({
       success: true,
-      message: 'Section deleted successfully'
+      message: "Section deleted successfully",
+      data: section,
     });
   } catch (error) {
-    console.error('Error deleting section:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete section',
-      error: error.message
+      message: "Error deleting section",
+      error: error.message,
     });
   }
 });
 
-// Toggle section active status
-router.patch('/:pageType/:sectionType/toggle', auth, async (req, res) => {
+// Bulk create/update sections (useful for frontend data sync)
+router.post("/bulk", async (req, res) => {
   try {
-    const { pageType, sectionType } = req.params;
-    
-    const section = await Section.findOne({ pageType, sectionType });
-    
-    if (!section) {
-      return res.status(404).json({
-        success: false,
-        message: 'Section not found'
-      });
-    }
-    
-    section.isActive = !section.isActive;
-    section.updatedAt = new Date();
-    await section.save();
-    
-    // Emit real-time update
-    const io = req.app.get('io');
-    io.to(`${pageType}-${sectionType}`).emit('section-toggled', {
-      pageType,
-      sectionType,
-      isActive: section.isActive
-    });
-    
-    res.json({
-      success: true,
-      message: `Section ${section.isActive ? 'activated' : 'deactivated'} successfully`,
-      data: { isActive: section.isActive }
-    });
-  } catch (error) {
-    console.error('Error toggling section:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to toggle section',
-      error: error.message
-    });
-  }
-});
+    const { sections } = req.body;
 
-// Bulk operations
-router.post('/bulk/update-order', auth, async (req, res) => {
-  try {
-    const { sections } = req.body; // Array of { pageType, sectionType, order }
-    
     if (!Array.isArray(sections)) {
       return res.status(400).json({
         success: false,
-        message: 'Sections must be an array'
+        message: "sections must be an array",
       });
     }
-    
-    const bulkOps = sections.map(({ pageType, sectionType, order }) => ({
-      updateOne: {
-        filter: { pageType, sectionType },
-        update: { order, updatedAt: new Date() }
+
+    const results = [];
+
+    for (const sectionData of sections) {
+      const { sectionName, subsectionName, ...rest } = sectionData;
+
+      if (!sectionName) {
+        results.push({
+          error: "sectionName is required",
+          data: sectionData,
+        });
+        continue;
       }
-    }));
-    
-    await Section.bulkWrite(bulkOps);
-    
+
+      try {
+        const section = await Section.findOneAndUpdate(
+          { sectionName, subsectionName: subsectionName || "main" },
+          { ...rest, lastUpdated: new Date() },
+          { upsert: true, new: true, runValidators: true }
+        );
+
+        results.push({
+          success: true,
+          data: section,
+        });
+      } catch (error) {
+        results.push({
+          error: error.message,
+          data: sectionData,
+        });
+      }
+    }
+
     res.json({
       success: true,
-      message: 'Section order updated successfully'
+      message: "Bulk operation completed",
+      results,
     });
   } catch (error) {
-    console.error('Error updating section order:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update section order',
-      error: error.message
+      message: "Error in bulk operation",
+      error: error.message,
     });
   }
 });
