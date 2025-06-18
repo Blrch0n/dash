@@ -2,14 +2,45 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
 require("dotenv").config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Import middleware
+const { generalRateLimit, corsHeaders } = require("./middleware/auth");
+
+// Security middleware
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false, // Disable for development, configure properly in production
+  })
+);
+
+// Rate limiting
+app.use(generalRateLimit);
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    process.env.FRONTEND_URL || "http://localhost:3000",
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+};
+
+app.use(cors(corsOptions));
+app.use(corsHeaders);
+
+// Body parsing middleware
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(cookieParser());
 
 // Connect to MongoDB
 mongoose
@@ -18,6 +49,7 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Routes
+app.use("/api/auth", require("./routes/auth"));
 app.use("/api/sections", require("./routes/sections"));
 
 // Health check route
@@ -31,6 +63,13 @@ app.get("/", (req, res) => {
     message: "Dashboard Backend API",
     availableEndpoints: [
       "GET /api/health",
+      "POST /api/auth/register",
+      "POST /api/auth/login",
+      "POST /api/auth/logout",
+      "POST /api/auth/refresh",
+      "GET /api/auth/me",
+      "PUT /api/auth/profile",
+      "PUT /api/auth/change-password",
       "GET /api/sections",
       "GET /api/sections/:sectionName",
       "POST /api/sections",

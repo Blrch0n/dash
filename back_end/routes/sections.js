@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Section = require("../models/Section");
+const { authenticateToken, optionalAuth } = require("../middleware/auth");
 
-// Get all sections
-router.get("/", async (req, res) => {
+// Get all sections (public read access)
+router.get("/", optionalAuth, async (req, res) => {
   try {
     const sections = await Section.find().sort({ sectionName: 1, order: 1 });
     res.json({
@@ -19,8 +20,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get sections by section name
-router.get("/:sectionName", async (req, res) => {
+// Get sections by section name (public read access)
+router.get("/:sectionName", optionalAuth, async (req, res) => {
   try {
     const { sectionName } = req.params;
     const sections = await Section.find({ sectionName }).sort({ order: 1 });
@@ -72,7 +73,7 @@ router.get("/:sectionName/:subsectionName", async (req, res) => {
 });
 
 // Create or update a section
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     const {
       sectionName,
@@ -153,7 +154,7 @@ router.post("/", async (req, res) => {
 });
 
 // Update section by ID
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = { ...req.body, lastUpdated: new Date() };
@@ -185,7 +186,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete section by ID
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const section = await Section.findByIdAndDelete(id);
@@ -212,7 +213,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Bulk create/update sections (useful for frontend data sync)
-router.post("/bulk", async (req, res) => {
+router.post("/bulk", authenticateToken, async (req, res) => {
   try {
     const { sections } = req.body;
 
