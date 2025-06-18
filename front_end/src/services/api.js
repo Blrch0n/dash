@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // API service for connecting to MongoDB Atlas backend
-const API_BASE_URL = "https://dash-zov2.onrender.com/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://dash-zov2.onrender.com/api";
 
 // Safe localStorage wrapper for SSR compatibility
 const safeLocalStorage = {
@@ -26,12 +26,17 @@ const safeLocalStorage = {
 // Create axios instance with default configuration
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // Increased timeout for production
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true,
 });
+
+// Add debugging for production
+if (process.env.NODE_ENV === 'development') {
+  console.log('API Base URL:', API_BASE_URL);
+}
 
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(

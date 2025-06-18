@@ -28,6 +28,9 @@ const corsOptions = {
     process.env.FRONTEND_URL || "http://localhost:3000",
     "http://localhost:3000",
     "http://localhost:3001",
+    // Add your deployed frontend URLs here
+    "https://dash-zov2.onrender.com", // Replace with your actual Vercel URL
+    // Add any other deployment URLs
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
