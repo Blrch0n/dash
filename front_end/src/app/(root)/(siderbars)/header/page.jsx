@@ -262,19 +262,6 @@ const EditorPanel = ({
   <div className="h-full w-[30%] bg-white rounded-lg p-4 overflow-auto">
     <h2 className="text-xl font-bold mb-4 text-gray-800">Header засварлах</h2>
 
-    {/* Status */}
-    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-      <div className="flex items-center gap-2">
-        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-        <span className="text-sm font-medium text-blue-800">
-          MongoDB Atlas Connected
-        </span>
-      </div>
-      <p className="text-xs text-blue-600 mt-1">
-        Auto-saves changes to cloud database
-      </p>
-    </div>
-
     {/* Logo Upload */}
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -302,7 +289,7 @@ const EditorPanel = ({
             reader.readAsDataURL(file);
           }
         }}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 bg-center file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
       />
 
       {/* Image Preview */}
@@ -312,8 +299,12 @@ const EditorPanel = ({
             <img
               src={config.image}
               alt="Logo Preview"
-              className="rounded bg-gray-100 border"
-              style={{ objectFit: "contain", width: "180px", height: "50px" }}
+              className="w-full rounded bg-gray-100 border"
+              style={{
+                objectFit: "cover",
+                objectPosition: "center",
+                height: "100px",
+              }}
             />
             <button
               onClick={() => {
@@ -327,8 +318,8 @@ const EditorPanel = ({
           </div>
         ) : (
           <div
-            className="border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center text-gray-400"
-            style={{ width: "180px", height: "50px" }}
+            className="w-full border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center text-gray-400"
+            style={{ height: "50px" }}
           >
             <span className="text-sm">Зураг сонгоно уу</span>
           </div>
@@ -401,16 +392,6 @@ const EditorPanel = ({
     >
       {isSaving ? "Хадгалж байна..." : "Хадгалах"}
     </button>
-
-    {/* Storage Info */}
-    <div className="mt-4 p-3 bg-gray-100 rounded-lg">
-      <h4 className="text-xs font-medium text-gray-700 mb-2">Storage Info</h4>
-      <div className="text-xs text-gray-600 space-y-1">
-        <p>• Backend: MongoDB Atlas</p>
-        <p>• Section: header/main</p>
-        <p>• Status: {isSaving ? "Saving..." : "Saved"}</p>
-      </div>
-    </div>
   </div>
 );
 
