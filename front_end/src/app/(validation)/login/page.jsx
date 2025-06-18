@@ -38,11 +38,18 @@ const LoginPage = () => {
     setError("");
 
     try {
-      const { user } = login(formData.email, formData.password);
-      authLogin(user);
-      router.push("/"); // Redirect to dashboard
+      const response = await login(formData);
+      if (response.success) {
+        authLogin(response.user);
+        router.push("/"); // Redirect to dashboard
+      } else {
+        setError(response.message || "Login failed");
+      }
     } catch (err) {
-      setError(err.message);
+      console.error("Login error:", err);
+      setError(
+        err.response?.data?.message || "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -116,13 +123,6 @@ const LoginPage = () => {
               Sign up here
             </Link>
           </p>
-          <div className="mt-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-400 text-xs">
-            <p>
-              <strong>Demo Account:</strong>
-            </p>
-            <p>Email: admin@example.com</p>
-            <p>Password: admin123</p>
-          </div>
         </div>
       </div>
     </div>

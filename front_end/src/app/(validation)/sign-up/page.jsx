@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { registerUser, login, isAuthenticated } from "../../../lib/auth";
+import { register, isAuthenticated } from "../../../lib/auth";
 import { useAuth } from "../../../contexts/AuthContext";
 import Link from "next/link";
 
@@ -18,6 +18,26 @@ const SignUpPage = () => {
 
   const router = useRouter();
   const { login: authLogin } = useAuth();
+
+  // Test function to debug API connection
+  const testApiConnection = async () => {
+    try {
+      console.log("Testing API connection...");
+      const response = await fetch("http://localhost:5000/api/health", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await response.json();
+      console.log("API Health check response:", data);
+      alert("API connection successful: " + JSON.stringify(data));
+    } catch (error) {
+      console.error("API connection failed:", error);
+      alert("API connection failed: " + error.message);
+    }
+  };
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -40,29 +60,57 @@ const SignUpPage = () => {
     setLoading(true);
     setError("");
 
+    // Password validation
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match!");
       setLoading(false);
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long!");
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long!");
+      setLoading(false);
+      return;
+    }
+
+    // Check password strength - must contain uppercase, lowercase, and number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError(
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number!"
+      );
       setLoading(false);
       return;
     }
 
     try {
-      // Register the user
-      registerUser(formData);
+      // Register the user (which also logs them in automatically)
+      const response = await register(formData);
 
-      // Automatically log them in
-      const { user } = login(formData.email, formData.password);
-      authLogin(user);
-
-      router.push("/"); // Redirect to dashboard
+      if (response.success) {
+        authLogin(response.user);
+        router.push("/"); // Redirect to dashboard
+      } else {
+        setError(response.message || "Registration failed");
+      }
     } catch (err) {
-      setError(err.message);
+      console.error("Registration error:", err);
+
+      // Handle different error structures
+      let errorMessage = "Registration failed. Please try again.";
+
+      if (err.data?.errors && Array.isArray(err.data.errors)) {
+        // Handle validation errors array
+        errorMessage = err.data.errors.map((error) => error.message).join(", ");
+      } else if (err.data?.message) {
+        // Handle single error message from backend
+        errorMessage = err.data.message;
+      } else if (err.message) {
+        // Handle error message from our API service
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -155,6 +203,10 @@ const SignUpPage = () => {
               className="w-full px-4 py-3 rounded-lg bg-gray-700/50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter your password"
             />
+            <p className="text-xs text-gray-400 mt-1">
+              Must be at least 8 characters with uppercase, lowercase, and
+              number
+            </p>
           </div>
           <div>
             <label
@@ -174,6 +226,16 @@ const SignUpPage = () => {
               placeholder="Confirm your password"
             />
           </div>
+
+          {/* Debug button - remove after testing */}
+          <button
+            type="button"
+            onClick={testApiConnection}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 mb-2"
+          >
+            Test API Connection
+          </button>
+
           <button
             type="submit"
             disabled={loading}
