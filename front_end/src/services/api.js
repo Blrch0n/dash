@@ -2,7 +2,7 @@ import axios from "axios";
 
 // API service for connecting to MongoDB Atlas backend
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://dash-zov2.onrender.com/api";
+  process.env.NEXT_PUBLIC_API_URL || "http://192.168.0.16:5000/api";
 
 // Safe localStorage wrapper for SSR compatibility
 const safeLocalStorage = {
@@ -125,7 +125,9 @@ apiClient.interceptors.response.use(
       method: error.config?.method,
     };
 
-    console.error("API Error Details:", errorInfo);
+    if (process.env.NODE_ENV === "development") {
+      console.error("API Error Details:", errorInfo);
+    }
 
     // Return a more structured error
     const apiError = new Error(
@@ -133,6 +135,7 @@ apiClient.interceptors.response.use(
     );
     apiError.status = error.response?.status;
     apiError.data = error.response?.data;
+    apiError.response = error.response; // Preserve the full response object
     apiError.originalError = error;
 
     throw apiError;
@@ -167,21 +170,26 @@ export const api = {
 
         return response;
       } catch (error) {
-        console.error("Registration failed:", {
-          status: error.status,
-          message: error.message,
-          data: error.data,
-          originalError: error.originalError,
-        });
+        if (process.env.NODE_ENV === "development") {
+          console.error("Registration failed:", {
+            status: error.status,
+            message: error.message,
+            data: error.data,
+            response: error.response,
+            originalError: error.originalError,
+          });
+        }
 
-        // Throw a more user-friendly error
+        // Create error with preserved backend response data
         const userError = new Error(
-          error.data?.message ||
+          error.response?.data?.message ||
+            error.data?.message ||
             error.message ||
             "Registration failed. Please try again."
         );
-        userError.status = error.status;
-        userError.data = error.data;
+        userError.status = error.response?.status || error.status;
+        userError.data = error.response?.data || error.data;
+        userError.response = error.response;
 
         throw userError;
       }
@@ -199,20 +207,22 @@ export const api = {
 
         return response;
       } catch (error) {
-        console.error("Login failed:", {
-          status: error.status,
-          message: error.message,
-          data: error.data,
-        });
+        if (process.env.NODE_ENV === "development") {
+          console.error("Login failed:", {
+            status: error.status,
+            message: error.message,
+            data: error.data,
+          });
+        }
 
-        // Throw a more user-friendly error
+        // Create error with preserved backend response data
         const userError = new Error(
-          error.data?.message ||
+          error.response?.data?.message ||
             error.message ||
             "Login failed. Please check your credentials."
         );
-        userError.status = error.status;
-        userError.data = error.data;
+        userError.status = error.response?.status || error.status;
+        userError.response = error.response;
 
         throw userError;
       }
@@ -268,6 +278,24 @@ export const api = {
         return await apiClient.post("/auth/refresh");
       } catch (error) {
         console.error("Error refreshing token:", error);
+        throw error;
+      }
+    },
+
+    async forgotPassword(emailData) {
+      try {
+        return await apiClient.post("/auth/forgot-password", emailData);
+      } catch (error) {
+        console.error("Error sending password reset:", error);
+        throw error;
+      }
+    },
+
+    async resetPassword(resetData) {
+      try {
+        return await apiClient.post("/auth/reset-password", resetData);
+      } catch (error) {
+        console.error("Error resetting password:", error);
         throw error;
       }
     },
@@ -439,6 +467,11 @@ export const api = {
     }
   },
 };
+
+// Export authAPI as an alias for easier import
+export const authAPI = api.auth;
+
+export default api;
 
 // Utility functions for token management
 export const tokenUtils = {

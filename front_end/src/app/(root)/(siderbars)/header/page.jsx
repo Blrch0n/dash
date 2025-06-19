@@ -24,26 +24,49 @@ const DEFAULT_CONFIG = {
 
 // Loading Component
 const LoadingScreen = ({ message = "Loading..." }) => (
-  <div className="w-full h-full flex gap-5 bg-gray-50 p-5">
-    <div className="h-full w-[70%] bg-white rounded-lg p-4 flex items-center justify-center">
-      <div className="text-gray-500">{message}</div>
+  <div className="w-full h-full flex flex-col lg:flex-row gap-4 md:gap-5 bg-gray-50 p-4 md:p-5">
+    <div className="h-64 lg:h-full w-full lg:w-[70%] bg-white rounded-lg p-4 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <div className="text-gray-500">{message}</div>
+      </div>
     </div>
-    <div className="h-full w-[30%] bg-white rounded-lg p-4 flex items-center justify-center">
-      <div className="text-gray-500">Loading...</div>
+    <div className="h-64 lg:h-full w-full lg:w-[30%] bg-white rounded-lg p-4 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-pulse bg-gray-300 h-4 w-20 rounded mx-auto mb-2"></div>
+        <div className="text-gray-500 text-sm">Loading...</div>
+      </div>
     </div>
   </div>
 );
 
 // Error Component
 const ErrorScreen = ({ error, onRetry }) => (
-  <div className="w-full h-full flex gap-5 bg-gray-50 p-5">
-    <div className="h-full w-[70%] bg-white rounded-lg p-4 flex items-center justify-center">
-      <div className="text-red-500">Error: {error}</div>
+  <div className="w-full h-full flex flex-col lg:flex-row gap-4 md:gap-5 bg-gray-50 p-4 md:p-5">
+    <div className="h-64 lg:h-full w-full lg:w-[70%] bg-white rounded-lg p-4 md:p-6 flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-red-500 mb-4">
+          <svg
+            className="w-12 h-12 mx-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <div className="text-red-600 font-medium">Error: {error}</div>
+      </div>
     </div>
-    <div className="h-full w-[30%] bg-white rounded-lg p-4">
+    <div className="h-64 lg:h-full w-full lg:w-[30%] bg-white rounded-lg p-4 md:p-6">
       <button
         onClick={onRetry}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200"
       >
         Retry Loading
       </button>
@@ -543,17 +566,17 @@ const HeaderPage = () => {
         }}
       />
 
-      <div className="w-full h-full flex gap-5 bg-gray-50 p-5">
+      <div className="w-full h-full flex flex-col xl:flex-row gap-4 md:gap-5 bg-gray-50 p-4 md:p-5">
         {/* Preview Section */}
-        <div className="h-full w-[70%] bg-white rounded-lg p-4 overflow-auto">
+        <div className="h-96 xl:h-full w-full xl:w-[70%] bg-white rounded-lg p-4 md:p-6 overflow-auto">
           {/* View Mode Toggle */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 md:mb-6">
             <div className="bg-gray-200 rounded-lg p-1 flex">
               {["desktop", "mobile"].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-4 py-2 rounded-md transition-all ${
+                  className={`px-3 md:px-4 py-2 rounded-md transition-all text-sm md:text-base ${
                     viewMode === mode
                       ? "text-white shadow-md"
                       : "text-gray-600 hover:text-gray-800"
@@ -574,7 +597,7 @@ const HeaderPage = () => {
             <div
               className="transition-all duration-500 ease-in-out mx-auto"
               style={{
-                width: viewMode === "mobile" ? "22rem" : "100%",
+                width: viewMode === "mobile" ? "min(22rem, 100%)" : "100%",
                 transform: viewMode === "mobile" ? "scale(0.95)" : "scale(1)",
               }}
             >
@@ -591,13 +614,15 @@ const HeaderPage = () => {
         </div>
 
         {/* Editor Panel */}
-        <EditorPanel
-          config={config}
-          onConfigChange={setConfig}
-          onSave={handleManualSave}
-          isLoading={isLoading}
-          isSaving={isSaving}
-        />
+        <div className="w-full xl:w-[30%]">
+          <EditorPanel
+            config={config}
+            onConfigChange={setConfig}
+            onSave={handleManualSave}
+            isLoading={isLoading}
+            isSaving={isSaving}
+          />
+        </div>
       </div>
     </>
   );

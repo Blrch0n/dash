@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { api } from "../services/api";
 import {
   isAuthenticated,
   getCurrentUser,
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       try {
         setLoading(true);
 
-        // Check if we have valid authentication without making API calls
+        // Check if we have valid authentication
         if (isAuthenticated()) {
           const userData = getCurrentUser();
           setUser(userData);
@@ -38,20 +39,32 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // Only verify token with API if we have a token but basic validation failed
-        const token = getCurrentUser() ? "token_exists" : null;
+        // If we have a token but basic validation failed, verify with backend
+        const token = localStorage.getItem("accessToken");
         if (token) {
           try {
-            const isValid = await initializeAuth();
-            if (isValid) {
-              const userData = getCurrentUser();
-              setUser(userData);
+            const response = await api.auth.verifyToken();
+            if (response.success && response.data?.user) {
+              setUser(response.data.user);
+              // Update stored user data
+              localStorage.setItem(
+                "user-data",
+                JSON.stringify(response.data.user)
+              );
             } else {
               setUser(null);
+              // Clear invalid tokens
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("refreshToken");
+              localStorage.removeItem("user-data");
             }
           } catch (error) {
             console.error("Auth verification failed:", error);
             setUser(null);
+            // Clear invalid tokens
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("user-data");
           }
         } else {
           setUser(null);
