@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authAPI } from "../../../services/api";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ export default function SignUpPage() {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -61,6 +63,7 @@ export default function SignUpPage() {
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
+        confirmPassword: formData.confirmPassword,
       });
 
       if (response.success) {
@@ -69,7 +72,7 @@ export default function SignUpPage() {
         // Automatically redirect to login after successful registration
         setTimeout(() => {
           router.push("/login");
-        }, 2000);
+        }, 1500);
       }
     } catch (err) {
       console.error("Registration error:", err);

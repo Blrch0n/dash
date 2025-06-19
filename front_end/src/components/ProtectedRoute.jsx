@@ -15,7 +15,11 @@ const ProtectedRoute = ({
     // Only redirect after auth is initialized
     if (!isInitialized || loading) return;
 
-    if (!isAuthenticated) {
+    // Check localStorage for token as a fallback
+    const hasToken =
+      typeof window !== "undefined" && localStorage.getItem("accessToken");
+
+    if (!isAuthenticated && !hasToken) {
       router.push("/login");
       return;
     }
@@ -38,7 +42,9 @@ const ProtectedRoute = ({
   }
 
   // Show nothing while redirecting
-  if (!isAuthenticated) {
+  const hasToken =
+    typeof window !== "undefined" && localStorage.getItem("accessToken");
+  if (!isAuthenticated && !hasToken) {
     return null;
   }
 

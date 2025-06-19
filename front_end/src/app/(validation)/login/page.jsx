@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authAPI } from "../../../services/api";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -49,9 +51,14 @@ export default function LoginPage() {
         // Store user data
         if (response.data.user) {
           localStorage.setItem("user-data", JSON.stringify(response.data.user));
+          // Update AuthContext with user data
+          login(response.data.user);
         }
 
-        router.push("/"); // Redirect to dashboard
+        // Small delay to ensure auth state is updated, then navigate
+        setTimeout(() => {
+          router.push("/");
+        }, 100);
       }
     } catch (err) {
       console.error("Login error:", err);

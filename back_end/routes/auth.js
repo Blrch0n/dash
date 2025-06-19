@@ -74,6 +74,8 @@ router.post(
         hasUppercase: password ? /[A-Z]/.test(password) : false,
         hasLowercase: password ? /[a-z]/.test(password) : false,
         hasNumber: password ? /\d/.test(password) : false,
+        hasConfirmPassword: !!req.body.confirmPassword,
+        fullRequestBody: req.body,
       });
 
       // Create new user (verified by default)

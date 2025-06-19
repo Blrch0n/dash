@@ -100,6 +100,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     setUser(userData);
+    // Also store in localStorage for persistence
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
   };
 
   const logout = async () => {

@@ -46,12 +46,15 @@ const validateRegister = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 
-  body("confirmPassword").custom((value, { req }) => {
-    if (value !== req.body.password) {
-      throw new Error("Password confirmation does not match password");
-    }
-    return true;
-  }),
+  // Make confirmPassword optional since frontend validation handles it
+  body("confirmPassword")
+    .optional()
+    .custom((value, { req }) => {
+      if (value && value !== req.body.password) {
+        throw new Error("Password confirmation does not match password");
+      }
+      return true;
+    }),
 
   handleValidationErrors,
 ];
