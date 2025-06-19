@@ -65,6 +65,17 @@ router.post(
     try {
       const { firstName, lastName, email, password } = req.body;
 
+      // Debug logging
+      console.log("Registration request data:", {
+        firstName,
+        lastName,
+        email,
+        passwordLength: password ? password.length : 0,
+        hasUppercase: password ? /[A-Z]/.test(password) : false,
+        hasLowercase: password ? /[a-z]/.test(password) : false,
+        hasNumber: password ? /\d/.test(password) : false,
+      });
+
       // Create new user (verified by default)
       const user = new User({
         firstName,

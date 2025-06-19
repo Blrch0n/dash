@@ -8,21 +8,46 @@ require("dotenv").config();
 const app = express();
 
 // Import middleware
-const { generalRateLimit, corsHeaders } = require("./middleware/auth");
+const { generalRateLimit } = require("./middleware/auth");
 
 // Rate limiting
 app.use(generalRateLimit);
 
 // CORS configuration
 const corsOptions = {
-  origin: true, // Allow any origin
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Allow any localhost or local network origins
+    if (
+      origin.includes("localhost") ||
+      origin.includes("127.0.0.1") ||
+      origin.match(/192\.168\.\d+\.\d+/) ||
+      origin.match(/10\.\d+\.\d+\.\d+/) ||
+      origin.match(/172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+/)
+    ) {
+      return callback(null, true);
+    }
+
+    // Allow specific frontend URL if set
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+
+    // For development, allow all origins
+    if (process.env.NODE_ENV === "development") {
+      return callback(null, true);
+    }
+
+    callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
 
 app.use(cors(corsOptions));
-app.use(corsHeaders);
 
 // Body parsing middleware
 app.use(bodyParser.json({ limit: "50mb" }));
