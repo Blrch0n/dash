@@ -18,16 +18,19 @@ A secure Express.js backend for managing dashboard sections with email-based two
 ## Authentication Flow
 
 ### 1. User Registration
+
 - User signs up with email and password
 - System sends 4-digit verification code to email
 - User must verify email before being able to log in
 
 ### 2. Email Verification
+
 - User enters 4-digit code received via email
 - Email is marked as verified
 - Welcome email is sent
 
 ### 3. User Login
+
 - User enters email and password
 - If email not verified, login is rejected
 - Optional: System sends login verification code (if `REQUIRE_LOGIN_2FA=true`)
@@ -51,6 +54,7 @@ A secure Express.js backend for managing dashboard sections with email-based two
    ```
 
    **Important Email Setup:**
+
    - For Gmail: Enable 2-step verification and generate an "App Password"
    - Update `EMAIL_USER` and `EMAIL_PASS` in your `.env` file
    - Set `REQUIRE_LOGIN_2FA=true` if you want mandatory 2FA for all logins
@@ -83,6 +87,7 @@ A secure Express.js backend for managing dashboard sections with email-based two
 ### Authentication Endpoints
 
 #### Register User
+
 ```bash
 POST /api/auth/register
 Content-Type: application/json
@@ -96,6 +101,7 @@ Content-Type: application/json
 ```
 
 #### Verify Email
+
 ```bash
 POST /api/auth/verify-email
 Content-Type: application/json
@@ -107,6 +113,7 @@ Content-Type: application/json
 ```
 
 #### Resend Verification Code
+
 ```bash
 POST /api/auth/resend-verification
 Content-Type: application/json
@@ -117,6 +124,7 @@ Content-Type: application/json
 ```
 
 #### Login User
+
 ```bash
 POST /api/auth/login
 Content-Type: application/json
@@ -130,6 +138,7 @@ Content-Type: application/json
 ```
 
 #### Verify Login (if 2FA enabled)
+
 ```bash
 POST /api/auth/verify-login
 Content-Type: application/json
@@ -141,12 +150,14 @@ Content-Type: application/json
 ```
 
 #### Refresh Token
+
 ```bash
 POST /api/auth/refresh
 # Cookies are automatically sent
 ```
 
 #### Logout
+
 ```bash
 POST /api/auth/logout
 Authorization: Bearer <access_token>

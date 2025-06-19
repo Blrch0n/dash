@@ -3,7 +3,6 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../models/User");
-const emailService = require("../utils/emailService");
 
 // Import middleware
 const {
@@ -22,8 +21,6 @@ const {
   validateProfileUpdate,
   checkUniqueEmail,
   sanitizeInput,
-  validateVerificationCode,
-  validateResendCode,
 } = require("../middleware/validation");
 
 // Helper function to set secure cookies
@@ -56,7 +53,7 @@ const clearTokenCookies = (res) => {
 };
 
 // @route   POST /api/auth/register
-// @desc    Register a new user and send verification email
+// @desc    Register a new user
 // @access  Public
 router.post(
   "/register",
@@ -68,52 +65,24 @@ router.post(
     try {
       const { firstName, lastName, email, password } = req.body;
 
-      // Create new user (not verified initially)
+      // Create new user (verified by default)
       const user = new User({
         firstName,
         lastName,
         email: email.toLowerCase(),
         password,
-        isEmailVerified: false,
+        isEmailVerified: true, // Auto-verify for now
       });
 
       await user.save();
 
-      // Generate and send verification code
-      const verificationCode = await user.createEmailVerificationCode();
-
-      try {
-        const emailResult = await emailService.sendVerificationCode(
-          user.email,
-          verificationCode,
-          "verification"
-        );
-
-        res.status(201).json({
-          success: true,
-          message:
-            "User registered successfully. Please check your email for verification code.",
-          data: {
-            email: user.email,
-            emailSent: emailResult.success,
-            previewUrl:
-              process.env.NODE_ENV === "development"
-                ? emailResult.previewUrl
-                : undefined,
-          },
-        });
-      } catch (emailError) {
-        console.error("Failed to send verification email:", emailError);
-        res.status(201).json({
-          success: true,
-          message:
-            "User registered successfully, but failed to send verification email. Please try resending.",
-          data: {
-            email: user.email,
-            emailSent: false,
-          },
-        });
-      }
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully.",
+        data: {
+          email: user.email,
+        },
+      });
     } catch (error) {
       console.error("Registration error:", error);
 
@@ -164,16 +133,6 @@ router.post(
         });
       }
 
-      // Check if email is verified
-      if (!user.isEmailVerified) {
-        return res.status(401).json({
-          success: false,
-          message: "Please verify your email before logging in.",
-          requiresEmailVerification: true,
-          email: user.email,
-        });
-      }
-
       // Compare password
       const isValidPassword = await user.comparePassword(password);
 
@@ -182,36 +141,6 @@ router.post(
           success: false,
           message: "Invalid email or password",
         });
-      }
-
-      // Check if two-factor authentication is enabled (optional)
-      const requireTwoFactor = process.env.REQUIRE_LOGIN_2FA === 'true' && !skipTwoFactor;
-
-      if (requireTwoFactor) {
-        // Generate and send login verification code
-        const loginCode = await user.createLoginVerificationCode();
-
-        try {
-          const emailResult = await emailService.sendVerificationCode(
-            user.email,
-            loginCode,
-            'login'
-          );
-
-          return res.json({
-            success: true,
-            message: "Login verification code sent to your email",
-            requiresLoginVerification: true,
-            data: {
-              email: user.email,
-              emailSent: emailResult.success,
-              previewUrl: process.env.NODE_ENV === 'development' ? emailResult.previewUrl : undefined,
-            },
-          });
-        } catch (emailError) {
-          console.error("Failed to send login verification email:", emailError);
-          // Continue with normal login if email fails
-        }
       }
 
       // Generate tokens for successful login
@@ -542,222 +471,5 @@ router.get("/users", authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
-
-// @route   POST /api/auth/verify-email
-// @desc    Verify email with 4-digit code
-// @access  Public
-router.post(
-  "/verify-email",
-  authRateLimit,
-  sanitizeInput,
-  validateVerificationCode,
-  async (req, res) => {
-    try {
-      const { email, code } = req.body;
-
-      // Find user by email and include verification fields
-      const user = await User.findByEmail(email)
-        .select("+emailVerificationCode +emailVerificationExpires");
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      if (user.isEmailVerified) {
-        return res.status(400).json({
-          success: false,
-          message: "Email is already verified",
-        });
-      }
-
-      // Verify the code
-      if (!user.verifyEmailCode(code)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid or expired verification code",
-        });
-      }
-
-      // Mark email as verified and clear verification codes
-      user.isEmailVerified = true;
-      await user.clearVerificationCodes();
-
-      // Send welcome email
-      try {
-        await emailService.sendWelcomeEmail(user.email, user.firstName);
-      } catch (emailError) {
-        console.error("Failed to send welcome email:", emailError);
-      }
-
-      res.json({
-        success: true,
-        message: "Email verified successfully. You can now log in.",
-        data: {
-          email: user.email,
-          isEmailVerified: true,
-        },
-      });
-    } catch (error) {
-      console.error("Email verification error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Email verification failed",
-        error:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
-    }
-  }
-);
-
-// @route   POST /api/auth/resend-verification
-// @desc    Resend email verification code
-// @access  Public
-router.post(
-  "/resend-verification",
-  authRateLimit,
-  sanitizeInput,
-  validateResendCode,
-  async (req, res) => {
-    try {
-      const { email } = req.body;
-
-      const user = await User.findByEmail(email);
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      if (user.isEmailVerified) {
-        return res.status(400).json({
-          success: false,
-          message: "Email is already verified",
-        });
-      }
-
-      // Generate and send new verification code
-      const verificationCode = await user.createEmailVerificationCode();
-
-      try {
-        const emailResult = await emailService.sendVerificationCode(
-          user.email,
-          verificationCode,
-          'verification'
-        );
-
-        res.json({
-          success: true,
-          message: "Verification code sent successfully",
-          data: {
-            email: user.email,
-            emailSent: emailResult.success,
-            previewUrl: process.env.NODE_ENV === 'development' ? emailResult.previewUrl : undefined,
-          },
-        });
-      } catch (emailError) {
-        console.error("Failed to resend verification email:", emailError);
-        res.status(500).json({
-          success: false,
-          message: "Failed to send verification email",
-        });
-      }
-    } catch (error) {
-      console.error("Resend verification error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to resend verification code",
-        error:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
-    }
-  }
-);
-
-// @route   POST /api/auth/verify-login
-// @desc    Verify login with 4-digit code and complete authentication
-// @access  Public
-router.post(
-  "/verify-login",
-  authRateLimit,
-  sanitizeInput,
-  validateVerificationCode,
-  async (req, res) => {
-    try {
-      const { email, code } = req.body;
-
-      // Find user by email and include verification fields
-      const user = await User.findByEmail(email)
-        .select("+loginVerificationCode +loginVerificationExpires +password");
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      if (!user.isEmailVerified) {
-        return res.status(401).json({
-          success: false,
-          message: "Please verify your email first",
-        });
-      }
-
-      if (!user.isActive) {
-        return res.status(401).json({
-          success: false,
-          message: "Account is deactivated",
-        });
-      }
-
-      // Verify the login code
-      if (!user.verifyLoginCode(code)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid or expired login verification code",
-        });
-      }
-
-      // Clear verification codes
-      await user.clearVerificationCodes();
-
-      // Generate tokens for successful login
-      const accessToken = user.generateAccessToken();
-      const refreshToken = user.generateRefreshToken();
-
-      // Save refresh token to user
-      await user.addRefreshToken(refreshToken);
-
-      // Set cookies
-      setTokenCookies(res, accessToken, refreshToken);
-
-      // Update last login
-      await user.updateLastLogin();
-
-      res.json({
-        success: true,
-        message: "Login verification successful",
-        data: {
-          user: user.getPublicProfile(),
-          accessToken,
-          refreshToken,
-        },
-      });
-    } catch (error) {
-      console.error("Login verification error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Login verification failed",
-        error:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
-    }
-  }
-);
 
 module.exports = router;

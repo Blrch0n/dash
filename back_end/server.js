@@ -3,21 +3,12 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const helmet = require("helmet");
 require("dotenv").config();
 
 const app = express();
 
 // Import middleware
 const { generalRateLimit, corsHeaders } = require("./middleware/auth");
-
-// Security middleware
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false, // Disable for development, configure properly in production
-  })
-);
 
 // Rate limiting
 app.use(generalRateLimit);

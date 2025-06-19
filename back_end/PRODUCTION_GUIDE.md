@@ -52,16 +52,19 @@ AUTH_RATE_LIMIT_MAX_REQUESTS=5
 ### 2. Email Service Setup
 
 **Recommended: SendGrid (Professional)**
+
 ```bash
 npm install @sendgrid/mail
 ```
 
 **Alternative: Gmail Business**
+
 1. Enable 2-step verification
 2. Generate App Password
 3. Use in EMAIL_PASS
 
 **Alternative: Amazon SES**
+
 ```env
 EMAIL_USER=your-ses-smtp-username
 EMAIL_PASS=your-ses-smtp-password
@@ -70,6 +73,7 @@ EMAIL_PASS=your-ses-smtp-password
 ### 3. Database Setup
 
 **MongoDB Atlas (Recommended)**
+
 1. Create cluster at mongodb.com
 2. Set up IP whitelist
 3. Create database user
@@ -82,28 +86,30 @@ Update `server.js` for production:
 ```javascript
 // Enhanced CORS for production
 const corsOptions = {
-  origin: ['https://yourdomain.com', 'https://www.yourdomain.com'],
+  origin: ["https://yourdomain.com", "https://www.yourdomain.com"],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 // Enhanced helmet configuration
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
     },
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
-}));
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
 ```
 
 ## 📊 Production Monitoring
@@ -112,21 +118,23 @@ app.use(helmet({
 
 ```javascript
 // Add to server.js
-const winston = require('winston');
+const winston = require("winston");
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: "info",
   format: winston.format.json(),
   transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' })
-  ]
+    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({ filename: "combined.log" }),
+  ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
+if (process.env.NODE_ENV !== "production") {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
 }
 ```
 
@@ -136,11 +144,11 @@ Add to your routes:
 
 ```javascript
 // Health check
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   res.json({
-    status: 'healthy',
+    status: "healthy",
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 ```
@@ -148,16 +156,19 @@ app.get('/health', (req, res) => {
 ## 🔐 Security Best Practices
 
 ### 1. Environment Secrets
+
 - Use strong, unique JWT secrets (64+ characters)
 - Store secrets in environment variables, never in code
 - Use different secrets for development and production
 
 ### 2. Database Security
+
 - Use MongoDB Atlas with IP whitelisting
 - Create dedicated database users with minimal permissions
 - Enable database authentication
 
 ### 3. Email Security
+
 - Use app passwords, never account passwords
 - Implement email rate limiting
 - Monitor email delivery rates
@@ -165,19 +176,25 @@ app.get('/health', (req, res) => {
 ## 📈 Scalability Considerations
 
 ### 1. Load Balancing
+
 The app is stateless and ready for horizontal scaling:
+
 - JWT tokens stored in cookies
 - No server-side session storage
 - Database handles concurrent connections
 
 ### 2. Caching
+
 Consider adding Redis for:
+
 - Rate limiting data
 - Temporary verification codes
 - Session management
 
 ### 3. Email Queue
+
 For high-volume applications:
+
 - Implement email queue (Bull, Agenda)
 - Use background job processing
 - Monitor email delivery status
@@ -187,6 +204,7 @@ For high-volume applications:
 ### Option 1: Cloud Platforms
 
 **Heroku**
+
 ```bash
 git add .
 git commit -m "Production ready"
@@ -194,11 +212,13 @@ git push heroku main
 ```
 
 **DigitalOcean App Platform**
+
 - Connect GitHub repository
 - Set environment variables
 - Deploy automatically
 
 **AWS/Azure/GCP**
+
 - Use container deployment
 - Set up load balancer
 - Configure auto-scaling
