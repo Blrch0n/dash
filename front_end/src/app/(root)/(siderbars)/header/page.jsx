@@ -282,14 +282,51 @@ const EditorPanel = ({
   isLoading,
   isSaving,
 }) => (
-  <div className="h-full w-[30%] bg-white rounded-lg p-4 overflow-auto">
-    <h2 className="text-xl font-bold mb-4 text-gray-800">Header засварлах</h2>
+  <div className="h-full w-full bg-white rounded-xl shadow-lg border border-gray-200 p-6 overflow-auto">
+    <div className="sticky top-0 bg-white pb-4 border-b border-gray-100 mb-6">
+      <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
+          </svg>
+        </div>
+        Header засварлах
+      </h2>
+      <p className="text-sm text-gray-500 mt-2">
+        Та өөрийн вэбсайтын header хэсгийг засварлаж болно
+      </p>
+    </div>
 
     {/* Logo Upload */}
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Лого зураг
-      </label>
+    <div className="mb-8 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+      <div className="flex items-center gap-2 mb-3">
+        <svg
+          className="w-5 h-5 text-blue-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+        <label className="text-sm font-semibold text-gray-700">
+          Лого зураг
+        </label>
+      </div>
       <input
         type="file"
         accept="image/*"
@@ -312,21 +349,21 @@ const EditorPanel = ({
             reader.readAsDataURL(file);
           }
         }}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 bg-center file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        className="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all duration-200 border border-gray-200 rounded-lg bg-white"
       />
 
       {/* Image Preview */}
-      <div className="mt-2">
+      <div className="mt-4">
         {config.image ? (
-          <div className="relative">
+          <div className="relative group">
             <img
               src={config.image}
               alt="Logo Preview"
-              className="w-full rounded bg-gray-100 border"
+              className="w-full rounded-lg bg-gray-100 border-2 border-gray-200 shadow-sm transition-transform duration-200 group-hover:scale-105"
               style={{
                 objectFit: "cover",
                 objectPosition: "center",
-                height: "100px",
+                height: "120px",
               }}
             />
             <button
@@ -334,87 +371,213 @@ const EditorPanel = ({
                 onConfigChange({ ...config, image: null });
                 toast.success("Зураг устгагдлаа!");
               }}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-red-600 shadow-lg transition-all duration-200 hover:scale-110"
             >
               ×
             </button>
           </div>
         ) : (
           <div
-            className="w-full border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center text-gray-400"
-            style={{ height: "50px" }}
+            className="w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center text-gray-400 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
+            style={{ height: "120px" }}
           >
-            <span className="text-sm">Зураг сонгоно уу</span>
+            <svg
+              className="w-8 h-8 mb-2 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            <span className="text-sm font-medium">Зураг сонгоно уу</span>
+            <span className="text-xs text-gray-400 mt-1">
+              PNG, JPG форматтай
+            </span>
           </div>
         )}
       </div>
     </div>
 
     {/* Navigation Labels */}
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Навигацийн цэсний нэрс
-      </label>
+    <div className="mb-8 p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+      <div className="flex items-center gap-2 mb-4">
+        <svg
+          className="w-5 h-5 text-green-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 10h16M4 14h16M4 18h16"
+          />
+        </svg>
+        <label className="text-sm font-semibold text-gray-700">
+          Навигацийн цэсний нэрс
+        </label>
+      </div>
       <div className="space-y-3">
         {config.labels.map((label, idx) => (
-          <input
-            key={idx}
-            type="text"
-            value={label}
-            onChange={(e) => {
-              const newLabels = [...config.labels];
-              newLabels[idx] = e.target.value;
-              onConfigChange({ ...config, labels: newLabels });
-            }}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder={`Цэсний нэр ${idx + 1}`}
-          />
+          <div key={idx} className="relative">
+            <input
+              type="text"
+              value={label}
+              onChange={(e) => {
+                const newLabels = [...config.labels];
+                newLabels[idx] = e.target.value;
+                onConfigChange({ ...config, labels: newLabels });
+              }}
+              className="w-full p-3 pl-4 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm hover:shadow-md"
+              placeholder={`Цэсний нэр ${idx + 1}`}
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+              <span className="text-xs font-medium text-green-600">
+                {idx + 1}
+              </span>
+            </div>
+          </div>
         ))}
       </div>
     </div>
 
     {/* Color Preview */}
-    <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-      <h3 className="text-sm font-medium text-gray-700 mb-3">
-        Одоогийн өнгөний тохиргоо
-      </h3>
-      <div className="space-y-2 text-xs">
-        <div className="flex items-center justify-between">
-          <span>Primary:</span>
-          <div
-            className="w-6 h-4 rounded border"
-            style={{ backgroundColor: config.primaryColor }}
+    <div className="mb-8 p-5 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100">
+      <div className="flex items-center gap-2 mb-4">
+        <svg
+          className="w-5 h-5 text-purple-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"
           />
+        </svg>
+        <h3 className="text-sm font-semibold text-gray-700">
+          Одоогийн өнгөний тохиргоо
+        </h3>
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-lg border-2 border-gray-300 shadow-sm"
+              style={{ backgroundColor: config.primaryColor }}
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Primary Color
+            </span>
+          </div>
+          <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">
+            {config.primaryColor}
+          </code>
         </div>
-        <div className="flex items-center justify-between">
-          <span>Accent:</span>
-          <div
-            className="w-6 h-4 rounded border"
-            style={{ backgroundColor: config.accentColor }}
-          />
+        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-lg border-2 border-gray-300 shadow-sm"
+              style={{ backgroundColor: config.accentColor }}
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Accent Color
+            </span>
+          </div>
+          <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">
+            {config.accentColor}
+          </code>
         </div>
-        <div className="flex items-center justify-between">
-          <span>Text:</span>
-          <div
-            className="w-6 h-4 rounded border"
-            style={{ backgroundColor: config.textColor }}
-          />
+        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-lg border-2 border-gray-300 shadow-sm"
+              style={{ backgroundColor: config.textColor }}
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Text Color
+            </span>
+          </div>
+          <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">
+            {config.textColor}
+          </code>
         </div>
       </div>
-      <p className="text-xs text-gray-500 mt-2">
-        Өнгийг өөрчлөхийн тулд "General Info" хуудас руу очно уу.
-      </p>
+      <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="flex items-center gap-2">
+          <svg
+            className="w-4 h-4 text-amber-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p className="text-xs text-amber-700 font-medium">
+            Өнгийг өөрчлөхийн тулд "General Info" хуудас руу очно уу.
+          </p>
+        </div>
+      </div>
     </div>
 
     {/* Save Button */}
-    <button
-      onClick={onSave}
-      disabled={isLoading || isSaving}
-      className="w-full text-white py-3 px-4 rounded-md transition-colors font-medium disabled:opacity-50"
-      style={{ backgroundColor: config.primaryColor }}
-    >
-      {isSaving ? "Хадгалж байна..." : "Хадгалах"}
-    </button>
+    <div className="sticky bottom-0 bg-white pt-4 border-t border-gray-100">
+      <button
+        onClick={onSave}
+        disabled={isLoading || isSaving}
+        className="w-full text-white py-4 px-6 rounded-xl transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
+        style={{ backgroundColor: config.primaryColor }}
+      >
+        {isSaving ? (
+          <>
+            <svg
+              className="animate-spin w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Хадгалж байна...
+          </>
+        ) : (
+          <>
+            <svg
+              className="w-5 h-5 group-hover:scale-110 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+              />
+            </svg>
+            Өөрчлөлт хадгалах
+          </>
+        )}
+      </button>
+    </div>
   </div>
 );
 
