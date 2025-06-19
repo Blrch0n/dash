@@ -1,0 +1,205 @@
+const SectionService = require("../services/sectionService");
+
+// @desc    Get all sections
+const getAllSections = async (req, res) => {
+  try {
+    const sections = await SectionService.getAllSections();
+    res.json({
+      success: true,
+      data: sections,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching sections",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get sections by section name
+const getSectionsByName = async (req, res) => {
+  try {
+    const { sectionName } = req.params;
+    const sections = await SectionService.getSectionsByName(sectionName);
+
+    if (sections.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No sections found for ${sectionName}`,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: sections,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching section",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get specific subsection
+const getSubsection = async (req, res) => {
+  try {
+    const { sectionName, subsectionName } = req.params;
+    const section = await SectionService.getSubsection(
+      sectionName,
+      subsectionName
+    );
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: `Section ${sectionName}/${subsectionName} not found`,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: section,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching section",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Create or update a section
+const createOrUpdateSection = async (req, res) => {
+  try {
+    const { sectionName } = req.body;
+
+    // Validate required fields
+    if (!sectionName) {
+      return res.status(400).json({
+        success: false,
+        message: "sectionName is required",
+      });
+    }
+
+    const { section, isNew } = await SectionService.findOrCreateSection(
+      req.body
+    );
+
+    res.status(isNew ? 201 : 200).json({
+      success: true,
+      message: isNew
+        ? "Section created successfully"
+        : "Section updated successfully",
+      data: section,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      res.status(400).json({
+        success: false,
+        message: "Section with this name and subsection already exists",
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Error creating/updating section",
+        error: error.message,
+      });
+    }
+  }
+};
+
+// @desc    Update section by ID
+const updateSectionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const section = await SectionService.updateSectionById(id, req.body);
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Section updated successfully",
+      data: section,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating section",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Delete section by ID
+const deleteSectionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const section = await SectionService.deleteSectionById(id);
+
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Section deleted successfully",
+      data: section,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error deleting section",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Bulk create/update sections
+const bulkUpdateSections = async (req, res) => {
+  try {
+    const { sections } = req.body;
+
+    if (!Array.isArray(sections)) {
+      return res.status(400).json({
+        success: false,
+        message: "sections must be an array",
+      });
+    }
+
+    const results = await SectionService.bulkUpdateSections(sections);
+
+    res.json({
+      success: true,
+      message: "Bulk operation completed",
+      results,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error in bulk operation",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  getAllSections,
+  getSectionsByName,
+  getSubsection,
+  createOrUpdateSection,
+  updateSectionById,
+  deleteSectionById,
+  bulkUpdateSections,
+};
