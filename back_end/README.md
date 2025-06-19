@@ -1,15 +1,38 @@
 # Dashboard Backend
 
-A simple Express.js backend for managing dashboard sections without authentication.
+A secure Express.js backend for managing dashboard sections with email-based two-way authentication.
 
 ## Features
 
-- ✅ Simple REST API for section management
+- ✅ REST API for section management
+- ✅ Email-based two-way authentication
+- ✅ 4-digit verification codes for signup and login
 - ✅ MongoDB integration with Mongoose
+- ✅ JWT-based authentication with refresh tokens
+- ✅ Email verification required before login
+- ✅ Optional two-factor authentication for login
 - ✅ CORS enabled for frontend integration
-- ✅ Data structure matches frontend sidebar sections
-- ✅ No authentication required
+- ✅ Rate limiting and security middleware
 - ✅ Bulk operations support
+
+## Authentication Flow
+
+### 1. User Registration
+- User signs up with email and password
+- System sends 4-digit verification code to email
+- User must verify email before being able to log in
+
+### 2. Email Verification
+- User enters 4-digit code received via email
+- Email is marked as verified
+- Welcome email is sent
+
+### 3. User Login
+- User enters email and password
+- If email not verified, login is rejected
+- Optional: System sends login verification code (if `REQUIRE_LOGIN_2FA=true`)
+- User enters login code to complete authentication
+- JWT tokens are issued
 
 ## Quick Start
 
@@ -21,13 +44,18 @@ A simple Express.js backend for managing dashboard sections without authenticati
 
 2. **Set up environment variables:**
 
+   Copy `.env.example` to `.env` and configure:
+
    ```bash
-   # .env file is already configured with defaults
-   MONGODB_URI=mongodb://localhost:27017/dashboard
-   PORT=5000
+   cp .env.example .env
    ```
 
-3. **Start MongoDB (if using local instance):**
+   **Important Email Setup:**
+   - For Gmail: Enable 2-step verification and generate an "App Password"
+   - Update `EMAIL_USER` and `EMAIL_PASS` in your `.env` file
+   - Set `REQUIRE_LOGIN_2FA=true` if you want mandatory 2FA for all logins
+
+3. **Start MongoDB:**
 
    ```bash
    # Make sure MongoDB is running on your system
@@ -52,9 +80,77 @@ A simple Express.js backend for managing dashboard sections without authenticati
 
 ## API Endpoints
 
-### Health Check
+### Authentication Endpoints
 
-- `GET /api/health` - Check if the server is running
+#### Register User
+```bash
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123"
+}
+```
+
+#### Verify Email
+```bash
+POST /api/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "code": "1234"
+}
+```
+
+#### Resend Verification Code
+```bash
+POST /api/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "john@example.com"
+}
+```
+
+#### Login User
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123",
+  "rememberMe": true,
+  "skipTwoFactor": false
+}
+```
+
+#### Verify Login (if 2FA enabled)
+```bash
+POST /api/auth/verify-login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "code": "5678"
+}
+```
+
+#### Refresh Token
+```bash
+POST /api/auth/refresh
+# Cookies are automatically sent
+```
+
+#### Logout
+```bash
+POST /api/auth/logout
+Authorization: Bearer <access_token>
+```
 
 ### Sections Management
 

@@ -274,6 +274,37 @@ const sanitizeInput = (req, res, next) => {
   next();
 };
 
+// Validation rules for verification code
+const validateVerificationCode = [
+  body("email")
+    .trim()
+    .toLowerCase()
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("code")
+    .trim()
+    .isLength({ min: 4, max: 4 })
+    .withMessage("Verification code must be 4 digits")
+    .isNumeric()
+    .withMessage("Verification code must contain only numbers"),
+
+  handleValidationErrors,
+];
+
+// Validation rules for resending verification code
+const validateResendCode = [
+  body("email")
+    .trim()
+    .toLowerCase()
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  handleValidationErrors,
+];
+
 module.exports = {
   handleValidationErrors,
   validateRegister,
@@ -287,4 +318,6 @@ module.exports = {
   validateSearch,
   checkUniqueEmail,
   sanitizeInput,
+  validateVerificationCode,
+  validateResendCode,
 };

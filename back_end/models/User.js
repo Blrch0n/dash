@@ -63,9 +63,25 @@ const userSchema = new mongoose.Schema(
     passwordResetToken: String,
     passwordResetExpires: Date,
     emailVerificationToken: String,
+    emailVerificationCode: {
+      type: String,
+      select: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      select: false,
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,
+    },
+    loginVerificationCode: {
+      type: String,
+      select: false,
+    },
+    loginVerificationExpires: {
+      type: Date,
+      select: false,
     },
   },
   {
@@ -187,6 +203,55 @@ userSchema.methods.getPublicProfile = function () {
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };
+};
+
+// Method to generate 4-digit verification code
+userSchema.methods.generateVerificationCode = function () {
+  const code = Math.floor(1000 + Math.random() * 9000).toString();
+  return code;
+};
+
+// Method to generate and save email verification code
+userSchema.methods.createEmailVerificationCode = async function () {
+  const code = this.generateVerificationCode();
+  this.emailVerificationCode = code;
+  this.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  await this.save();
+  return code;
+};
+
+// Method to generate and save login verification code
+userSchema.methods.createLoginVerificationCode = async function () {
+  const code = this.generateVerificationCode();
+  this.loginVerificationCode = code;
+  this.loginVerificationExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  await this.save();
+  return code;
+};
+
+// Method to verify email verification code
+userSchema.methods.verifyEmailCode = function (code) {
+  return (
+    this.emailVerificationCode === code &&
+    this.emailVerificationExpires > new Date()
+  );
+};
+
+// Method to verify login verification code
+userSchema.methods.verifyLoginCode = function (code) {
+  return (
+    this.loginVerificationCode === code &&
+    this.loginVerificationExpires > new Date()
+  );
+};
+
+// Method to clear verification codes
+userSchema.methods.clearVerificationCodes = async function () {
+  this.emailVerificationCode = undefined;
+  this.emailVerificationExpires = undefined;
+  this.loginVerificationCode = undefined;
+  this.loginVerificationExpires = undefined;
+  await this.save();
 };
 
 const User = mongoose.model("User", userSchema);
