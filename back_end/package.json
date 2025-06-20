@@ -5,11 +5,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "nodemon server.js --ignore client/",
+    "prod": "NODE_ENV=production node server.js",
     "seed": "node utils/seeder.js",
     "seed:admin": "node utils/createUsers.js admin",
     "seed:users": "node utils/createUsers.js users",
-    "seed:all": "node utils/createUsers.js all"
+    "seed:all": "node utils/createUsers.js all",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "echo \"No linting configured\" && exit 0"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -23,6 +26,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
+    "morgan": "^1.10.0",
     "nodemailer": "^7.0.3"
   },
   "devDependencies": {

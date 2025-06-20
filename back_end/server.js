@@ -3,9 +3,26 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
+const morgan = require("morgan");
 require("dotenv").config();
 
 const app = express();
+
+// Logging middleware
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else {
+  app.use(morgan("combined"));
+}
+
+// Security middleware
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Disable CSP for development
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // Import middleware
 const { generalRateLimit } = require("./middleware/auth");
@@ -63,6 +80,17 @@ mongoose
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/sections", require("./routes/sections"));
+
+// Global error handler (must be after routes)
+app.use(require("./middleware/errorHandler"));
+
+// Handle 404
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
 // Health check route
 app.get("/api/health", (req, res) => {
