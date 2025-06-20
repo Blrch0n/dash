@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import api from "../services/api";
+import { api } from "../services/api";
 
 export const useFileUpload = () => {
   const [uploading, setUploading] = useState(false);
@@ -40,7 +40,7 @@ export const useFileUpload = () => {
         toast.loading("Зураг ачаалж байна...", { id: "upload" });
       }
 
-      const response = await api.upload.uploadImage(file);
+      const response = await api.upload.single(file);
 
       if (response.success) {
         setProgress(100);

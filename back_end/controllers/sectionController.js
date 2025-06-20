@@ -1,4 +1,5 @@
 const SectionService = require("../services/sectionService");
+const { cleanupFiles } = require("../middleware/imageProcessor");
 
 // @desc    Get all sections
 const getAllSections = async (req, res) => {
@@ -79,6 +80,10 @@ const createOrUpdateSection = async (req, res) => {
 
     // Validate required fields
     if (!sectionName) {
+      // Clean up any uploaded files on validation error
+      if (req.files) {
+        cleanupFiles(req.files);
+      }
       return res.status(400).json({
         success: false,
         message: "sectionName is required",
@@ -97,6 +102,11 @@ const createOrUpdateSection = async (req, res) => {
       data: section,
     });
   } catch (error) {
+    // Clean up any uploaded files on error
+    if (req.files) {
+      cleanupFiles(req.files);
+    }
+
     if (error.code === 11000) {
       res.status(400).json({
         success: false,
@@ -119,6 +129,10 @@ const updateSectionById = async (req, res) => {
     const section = await SectionService.updateSectionById(id, req.body);
 
     if (!section) {
+      // Clean up any uploaded files if section not found
+      if (req.files) {
+        cleanupFiles(req.files);
+      }
       return res.status(404).json({
         success: false,
         message: "Section not found",
@@ -131,6 +145,11 @@ const updateSectionById = async (req, res) => {
       data: section,
     });
   } catch (error) {
+    // Clean up any uploaded files on error
+    if (req.files) {
+      cleanupFiles(req.files);
+    }
+
     res.status(500).json({
       success: false,
       message: "Error updating section",

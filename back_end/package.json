@@ -11,6 +11,7 @@
     "seed:admin": "node utils/createUsers.js admin",
     "seed:users": "node utils/createUsers.js users",
     "seed:all": "node utils/createUsers.js all",
+    "convert:images": "node utils/seeder.js convert",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo \"No linting configured\" && exit 0"
   },

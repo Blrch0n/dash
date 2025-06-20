@@ -282,6 +282,8 @@ const EditorPanel = ({
   onSave,
   isLoading,
   isSaving,
+  uploading,
+  uploadImage,
 }) => (
   <div className="h-full w-full bg-white rounded-xl shadow-lg border border-gray-200 p-6 overflow-auto">
     <div className="sticky top-0 bg-white pb-4 border-b border-gray-100 mb-6">
@@ -586,7 +588,8 @@ const HeaderPage = () => {
   const [config, setConfig] = useState(DEFAULT_CONFIG);
 
   // File upload hook
-  const { uploadImage, uploading } = useFileUpload();
+  const { uploadImage, uploading: fileUploading } = useFileUpload();
+  const uploading = fileUploading || false;
 
   // Load data from backend
   const loadData = async () => {
@@ -780,6 +783,8 @@ const HeaderPage = () => {
             onSave={handleManualSave}
             isLoading={isLoading}
             isSaving={isSaving}
+            uploading={uploading}
+            uploadImage={uploadImage}
           />
         </div>
       </div>

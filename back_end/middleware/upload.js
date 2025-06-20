@@ -95,7 +95,10 @@ const deleteFile = (filePath) => {
 
 // Helper function to get file URL
 const getFileUrl = (filename) => {
-  return `/api/uploads/images/${filename}`;
+  // Get the backend URL from environment or default to localhost
+  const backendUrl =
+    process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
+  return `${backendUrl}/api/uploads/images/${filename}`;
 };
 
 module.exports = {
