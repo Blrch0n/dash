@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { IoMdMenu } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
+import toast from "react-hot-toast";
+import { useFileUpload } from "../../../../hooks/useFileUpload";
 
 // Website metadata configuration
 const websiteConfig = {
@@ -80,6 +82,9 @@ const page = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+
+  // File upload hook
+  const { uploadImage, uploading } = useFileUpload();
 
   // Website configuration state - initialized from localStorage
   const [siteTitle, setSiteTitle] = useState(
@@ -226,46 +231,33 @@ const page = () => {
     setLabels(newLabels);
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!file.type.startsWith("image/")) {
-        alert("Please select only image files!");
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB!");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (ev) => setImage(ev.target.result);
-      reader.readAsDataURL(file);
+      const uploadedFile = await uploadImage(file, {
+        onSuccess: (fileData) => {
+          setImage(fileData.url);
+        },
+      });
     }
   };
 
-  const handleFaviconChange = (e) => {
+  const handleFaviconChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!file.type.startsWith("image/")) {
-        alert("Please select only image files for favicon!");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setFavicon(ev.target.result);
-        // Update favicon in real-time
-        const faviconLink =
-          document.querySelector("link[rel*='icon']") ||
-          document.createElement("link");
-        faviconLink.type = "image/x-icon";
-        faviconLink.rel = "shortcut icon";
-        faviconLink.href = ev.target.result;
-        document.getElementsByTagName("head")[0].appendChild(faviconLink);
-      };
-      reader.readAsDataURL(file);
+      const uploadedFile = await uploadImage(file, {
+        onSuccess: (fileData) => {
+          setFavicon(fileData.url);
+          // Update favicon in real-time
+          const faviconLink =
+            document.querySelector("link[rel*='icon']") ||
+            document.createElement("link");
+          faviconLink.type = "image/x-icon";
+          faviconLink.rel = "shortcut icon";
+          faviconLink.href = fileData.url;
+          document.getElementsByTagName("head")[0].appendChild(faviconLink);
+        },
+      });
     }
   };
 
@@ -654,7 +646,8 @@ const page = () => {
               type="file"
               accept="image/*"
               onChange={handleFaviconChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              disabled={uploading}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
             />
           </div>
         </div>
@@ -842,7 +835,8 @@ const page = () => {
             type="file"
             accept="image/*"
             onChange={handleImageChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            disabled={uploading}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
           />
           <div className="mt-2">
             {image ? (
@@ -864,7 +858,9 @@ const page = () => {
                   height: "50px",
                 }}
               >
-                <span className="text-sm">Select Image</span>
+                <span className="text-sm">
+                  {uploading ? "Ачаалж байна..." : "Select Image"}
+                </span>
               </div>
             )}
           </div>

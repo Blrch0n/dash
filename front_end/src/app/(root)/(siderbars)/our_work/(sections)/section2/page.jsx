@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { api } from "../../../../../../services/api";
+import { useFileUpload } from "../../../../../../hooks/useFileUpload";
 
 // Default section2 data structure
 const defaultSection2Data = {
@@ -267,7 +268,7 @@ const ViewModeToggle = ({ viewMode, setViewMode, primaryColor }) => (
 );
 
 // Editor Form Component
-const EditorForm = ({ section2Data, onDataChange, colors }) => {
+const EditorForm = ({ section2Data, onDataChange, colors, uploading, uploadImage }) => {
   const handleTitleChange = (field, value) => {
     onDataChange({
       ...section2Data,
@@ -284,29 +285,17 @@ const EditorForm = ({ section2Data, onDataChange, colors }) => {
     });
   };
 
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Зөвхөн зургийн файл сонгоно уу!");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Зургийн хэмжээ 5MB-аас бага байх ёстой!");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        onDataChange({
-          ...section2Data,
-          image: e.target.result,
-        });
-      };
-      reader.readAsDataURL(file);
+      const uploadedFile = await uploadImage(file, {
+        onSuccess: (fileData) => {
+          onDataChange({
+            ...section2Data,
+            image: fileData.url,
+          });
+        },
+      });
     }
   };
 
@@ -353,7 +342,8 @@ const EditorForm = ({ section2Data, onDataChange, colors }) => {
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            disabled={uploading}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
           />
 
           {/* Image Preview */}
@@ -374,7 +364,9 @@ const EditorForm = ({ section2Data, onDataChange, colors }) => {
             </div>
           ) : (
             <div className="w-full h-32 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center">
-              <span className="text-sm text-gray-400">Зураг сонгоно уу</span>
+              <span className="text-sm text-gray-400">
+                {uploading ? "Ачаалж байна..." : "Зураг сонгоно уу"}
+              </span>
             </div>
           )}
         </div>
@@ -496,6 +488,9 @@ const Section2Page = () => {
   const [error, setError] = useState(null);
   const [section2Data, setSection2Data] = useState(null);
   const router = useRouter();
+
+  // File upload hook
+  const { uploadImage, uploading } = useFileUpload();
 
   // Create section2 data with defaults
   const createSection2Data = async () => {
@@ -689,6 +684,8 @@ const Section2Page = () => {
             section2Data={section2Data}
             onDataChange={handleDataChange}
             colors={colors}
+            uploading={uploading}
+            uploadImage={uploadImage}
           />
 
           <ColorPreview colors={colors} />
