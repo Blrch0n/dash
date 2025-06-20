@@ -96,6 +96,17 @@ app.use("*", (req, res) => {
   });
 });
 
+// Global error handler (must be after routes)
+app.use(require("./middleware/errorHandler"));
+
+// Handle 404
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
 // Health check route
 app.get("/api/health", (req, res) => {
   res.json({ message: "Backend is running", timestamp: new Date() });
