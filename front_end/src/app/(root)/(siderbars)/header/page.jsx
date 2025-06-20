@@ -337,7 +337,7 @@ const EditorPanel = ({
             const uploadedFile = await uploadImage(file, {
               onSuccess: (fileData) => {
                 onConfigChange({ ...config, image: fileData.url });
-              }
+              },
             });
           }
         }}
@@ -584,7 +584,7 @@ const HeaderPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
-  
+
   // File upload hook
   const { uploadImage, uploading } = useFileUpload();
 
