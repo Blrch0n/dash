@@ -466,6 +466,45 @@ export const api = {
       throw error;
     }
   },
+
+  // Upload functionality
+  upload: {
+    async single(file) {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const response = await apiClient.post("/upload/single", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        return response;
+      } catch (error) {
+        console.error("Upload error:", error);
+        throw error;
+      }
+    },
+
+    async multiple(files) {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      try {
+        const response = await apiClient.post("/upload/multiple", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        return response;
+      } catch (error) {
+        console.error("Upload error:", error);
+        throw error;
+      }
+    },
+  },
 };
 
 // Export authAPI as an alias for easier import

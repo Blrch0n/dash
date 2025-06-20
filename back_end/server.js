@@ -60,9 +60,13 @@ mongoose
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+// Static file serving for uploads
+app.use('/api/uploads', express.static('uploads'));
+
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/sections", require("./routes/sections"));
+app.use("/api/upload", require("./routes/upload"));
 
 // Health check route
 app.get("/api/health", (req, res) => {

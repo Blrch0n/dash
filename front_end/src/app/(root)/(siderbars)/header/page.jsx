@@ -4,6 +4,7 @@ import { IoMdMenu } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
 import toast, { Toaster } from "react-hot-toast";
 import { api } from "../../../../services/api";
+import { useFileUpload } from "../../../../hooks/useFileUpload";
 
 // Default configuration
 const DEFAULT_CONFIG = {
@@ -330,26 +331,18 @@ const EditorPanel = ({
       <input
         type="file"
         accept="image/*"
-        onChange={(e) => {
+        onChange={async (e) => {
           const file = e.target.files[0];
           if (file) {
-            if (!file.type.startsWith("image/")) {
-              toast.error("Зөвхөн зургийн файл сонгоно уу!");
-              return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-              toast.error("Зургийн хэмжээ 5MB-аас бага байх ёстой!");
-              return;
-            }
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-              onConfigChange({ ...config, image: ev.target.result });
-              toast.success("Зураг амжилттай байршуулагдлаа!");
-            };
-            reader.readAsDataURL(file);
+            const uploadedFile = await uploadImage(file, {
+              onSuccess: (fileData) => {
+                onConfigChange({ ...config, image: fileData.url });
+              }
+            });
           }
         }}
-        className="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all duration-200 border border-gray-200 rounded-lg bg-white"
+        disabled={uploading}
+        className="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all duration-200 border border-gray-200 rounded-lg bg-white disabled:opacity-50"
       />
 
       {/* Image Preview */}
@@ -591,6 +584,9 @@ const HeaderPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
+  
+  // File upload hook
+  const { uploadImage, uploading } = useFileUpload();
 
   // Load data from backend
   const loadData = async () => {
