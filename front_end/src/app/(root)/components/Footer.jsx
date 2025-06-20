@@ -40,13 +40,6 @@ const Footer = () => {
             </a>
           </div>
         </div>
-
-        {/* Additional Info */}
-        <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-500">
-            Built with ❤️ using Next.js and Tailwind CSS
-          </p>
-        </div>
       </div>
     </footer>
   );
