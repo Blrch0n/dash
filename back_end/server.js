@@ -78,13 +78,20 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Static file serving for uploads with CORS headers
-app.use("/api/uploads", (req, res, next) => {
-  res.header("Cross-Origin-Resource-Policy", "cross-origin");
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-}, express.static("uploads"));
+app.use(
+  "/api/uploads",
+  (req, res, next) => {
+    res.header("Cross-Origin-Resource-Policy", "cross-origin");
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    next();
+  },
+  express.static("uploads")
+);
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
