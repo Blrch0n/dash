@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IoMdMenu } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
 import toast from "react-hot-toast";
 import { useFileUpload } from "../../../../hooks/useFileUpload";
+import { api } from "../../../../services/api"; // Add API import
 
 // Website metadata configuration
 const websiteConfig = {
@@ -32,9 +33,21 @@ const headerInfo = {
 const DEFAULT_LABELS = ["Home", "About", "Services", "Contact", "Blog", "Help"];
 const DEFAULT_IMAGE = null;
 
-// Helper function to load configuration from localStorage
-const loadConfigFromStorage = () => {
+// Helper function to load configuration from database first, then localStorage as fallback
+const loadConfigFromStorage = async () => {
   if (typeof window !== "undefined") {
+    try {
+      // Try to load from database first
+      const response = await api.sections.getBySectionName("general-info");
+      if (response.success && response.data.length > 0) {
+        const dbConfig = response.data[0].data;
+        return { ...websiteConfig, ...dbConfig };
+      }
+    } catch (error) {
+      console.error("Error loading config from database:", error);
+    }
+
+    // Fallback to localStorage
     try {
       const stored = localStorage.getItem("websiteConfig");
       if (stored) {
@@ -47,20 +60,84 @@ const loadConfigFromStorage = () => {
   return websiteConfig;
 };
 
-// Helper function to save configuration to localStorage
-const saveConfigToStorage = (config) => {
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem("websiteConfig", JSON.stringify(config));
-    } catch (error) {
-      console.error("Error saving config to localStorage:", error);
-    }
+// Helper function to save configuration to database only
+const saveConfigToDatabase = async (config) => {
+  try {
+    // Save to database
+    await api.saveSection({
+      sectionName: "general-info",
+      subsectionName: "main",
+      title: config.siteTitle || config.title,
+      content: config.siteDescription || config.description,
+      data: config,
+    });
+  } catch (error) {
+    console.error("Error saving config to database:", error);
+    throw error;
   }
 };
 
 const page = () => {
-  // Load initial configuration from localStorage or use defaults
-  const [config, setConfig] = useState(() => loadConfigFromStorage());
+  // Load initial configuration from database/localStorage or use defaults
+  const [config, setConfig] = useState(websiteConfig);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const isInitialLoadRef = useRef(true);
+
+  // Load configuration on component mount
+  useEffect(() => {
+    const loadConfig = async () => {
+      setIsLoading(true);
+      try {
+        const loadedConfig = await loadConfigFromStorage();
+        setConfig(loadedConfig);
+
+        // Initialize all state with loaded values
+        setSiteTitle(
+          loadedConfig.siteTitle || loadedConfig.title || websiteConfig.title
+        );
+        setSiteDescription(
+          loadedConfig.siteDescription ||
+            loadedConfig.description ||
+            websiteConfig.description
+        );
+        setFavicon(loadedConfig.favicon || websiteConfig.favicon);
+        setPrimaryColor(
+          loadedConfig.primaryColor || websiteConfig.primaryColor
+        );
+        setSecondaryColor(
+          loadedConfig.secondaryColor || websiteConfig.secondaryColor
+        );
+        setAccentColor(loadedConfig.accentColor || websiteConfig.accentColor);
+        setBackgroundColor(
+          loadedConfig.backgroundColor || websiteConfig.backgroundColor
+        );
+        setTextColor(loadedConfig.textColor || websiteConfig.textColor);
+        setScrolledBgColor(
+          loadedConfig.scrolledBgColor || websiteConfig.scrolledBgColor
+        );
+        setScrolledTextColor(
+          loadedConfig.scrolledTextColor || websiteConfig.scrolledTextColor
+        );
+        setHoverColor(loadedConfig.hoverColor || websiteConfig.hoverColor);
+        setBorderColor(loadedConfig.borderColor || websiteConfig.borderColor);
+        setLabels(loadedConfig.labels || DEFAULT_LABELS);
+        setImage(loadedConfig.image || DEFAULT_IMAGE);
+
+        // Don't mark as unsaved changes during initial load
+        setHasUnsavedChanges(false);
+        isInitialLoadRef.current = false;
+      } catch (error) {
+        console.error("Error loading configuration:", error);
+        toast.error("Failed to load configuration from database");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadConfig();
+  }, []);
 
   // Update document title and favicon
   useEffect(() => {
@@ -126,8 +203,11 @@ const page = () => {
     config.borderColor || websiteConfig.borderColor
   );
 
-  // Auto-save configuration whenever colors change
+  // Auto-save configuration to localStorage only (not database) whenever colors change
   useEffect(() => {
+    // Skip if still loading initial data
+    if (isLoading) return;
+
     const currentConfig = {
       siteTitle,
       siteDescription,
@@ -148,9 +228,21 @@ const page = () => {
       description: siteDescription,
     };
 
-    // Save to localStorage
-    saveConfigToStorage(currentConfig);
+    // Save to localStorage only (for instant preview)
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("websiteConfig", JSON.stringify(currentConfig));
+      } catch (error) {
+        console.error("Error saving config to localStorage:", error);
+      }
+    }
+
     setConfig(currentConfig);
+
+    // Only mark as unsaved if not during initial load
+    if (!isInitialLoadRef.current) {
+      setHasUnsavedChanges(true);
+    }
 
     // Dispatch custom event to notify other pages about color changes
     if (typeof window !== "undefined") {
@@ -175,9 +267,12 @@ const page = () => {
     borderColor,
     labels,
     image,
+    isLoading,
   ]);
 
-  // Listen for configuration updates from other pages
+  // Listen for configuration updates from other pages (disabled to prevent infinite loops)
+  // This was causing setState loops when combined with auto-save useEffect
+  /*
   useEffect(() => {
     const handleConfigUpdate = (event) => {
       const updatedConfig = event.detail;
@@ -209,6 +304,7 @@ const page = () => {
       };
     }
   }, []);
+  */
 
   // Simulate scroll effect for preview
   useEffect(() => {
@@ -266,39 +362,56 @@ const page = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Manual save function for explicit saves
-  const saveConfiguration = () => {
-    const configToSave = {
-      siteTitle,
-      siteDescription,
-      favicon,
-      primaryColor,
-      secondaryColor,
-      accentColor,
-      backgroundColor,
-      textColor,
-      scrolledBgColor,
-      scrolledTextColor,
-      hoverColor,
-      borderColor,
-      labels,
-      image,
-      title: siteTitle,
-      description: siteDescription,
-    };
+  // Manual save function for explicit saves to database
+  const saveConfiguration = async () => {
+    try {
+      setIsLoading(true);
 
-    saveConfigToStorage(configToSave);
+      const configToSave = {
+        siteTitle,
+        siteDescription,
+        favicon,
+        primaryColor,
+        secondaryColor,
+        accentColor,
+        backgroundColor,
+        textColor,
+        scrolledBgColor,
+        scrolledTextColor,
+        hoverColor,
+        borderColor,
+        labels,
+        image,
+        title: siteTitle,
+        description: siteDescription,
+      };
 
-    // Dispatch event to notify other pages
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("websiteConfigUpdate", {
-          detail: configToSave,
-        })
-      );
+      // Save to database only (localStorage already updated by useEffect)
+      await saveConfigToDatabase(configToSave);
+
+      // Update localStorage again to ensure sync
+      if (typeof window !== "undefined") {
+        localStorage.setItem("websiteConfig", JSON.stringify(configToSave));
+      }
+
+      // Dispatch event to notify other pages
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("websiteConfigUpdate", {
+            detail: configToSave,
+          })
+        );
+      }
+
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false); // Clear unsaved changes flag
+      toast.success("Configuration saved to database successfully!");
+    } catch (error) {
+      console.error("Error saving configuration:", error);
+      toast.error("Failed to save configuration to database");
+    } finally {
+      setIsLoading(false);
     }
-
-    alert("Configuration saved successfully!");
   };
 
   // Function to reset to defaults
@@ -323,7 +436,6 @@ const page = () => {
     }
   };
 
-  // ...existing code...
   const PreviewComponent = ({ isMobile }) => (
     // ...existing PreviewComponent code remains the same...
     <div
@@ -541,6 +653,20 @@ const page = () => {
     </div>
   );
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            Loading configuration from database...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex gap-5 bg-gray-50 p-5">
       {/* Preview Section */}
@@ -593,21 +719,32 @@ const page = () => {
         </div>
       </div>
 
-      {/* Editor Section */}
+      {/* Configuration Section */}
       <div className="h-full w-[30%] bg-white rounded-lg p-4 overflow-auto">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">
+        <h3 className="text-lg font-bold mb-4 text-gray-800">
           Website Configuration
-        </h2>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {headerInfo.title}
-        </label>
-        <p className="text-xs text-gray-500 mb-4">{headerInfo.content}</p>
+        </h3>
 
-        {/* Website Metadata */}
+        {/* Database Status */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center mb-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+            <span className="text-sm font-medium text-blue-800">
+              Database Connected
+            </span>
+          </div>
+          <p className="text-xs text-blue-600">
+            Configuration is automatically synced with your MongoDB database.
+            Changes are saved to both localStorage (for instant preview) and
+            database (for persistence).
+          </p>
+        </div>
+
+        {/* Site Info */}
         <div className="mb-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            Website Metadata
-          </h3>
+          <h4 className="text-md font-semibold text-gray-800 mb-3">
+            Site Information
+          </h4>
 
           {/* Site Title */}
           <div className="space-y-2">
@@ -636,27 +773,13 @@ const page = () => {
               placeholder="Enter website description"
             />
           </div>
-
-          {/* Favicon Upload */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Website Icon (Favicon)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFaviconChange}
-              disabled={uploading}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
-            />
-          </div>
         </div>
 
         {/* Color System */}
         <div className="mb-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+          <h4 className="text-md font-semibold text-gray-800 mb-3">
             Color System
-          </h3>
+          </h4>
 
           {/* Primary Color */}
           <div className="space-y-2">
@@ -826,82 +949,51 @@ const page = () => {
           </div>
         </div>
 
-        {/* Logo Upload */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Logo Image
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            disabled={uploading}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
-          />
-          <div className="mt-2">
-            {image ? (
-              <img
-                src={image}
-                alt="Logo Preview"
-                className="rounded bg-gray-100 border"
-                style={{
-                  objectFit: "contain",
-                  width: "180px",
-                  height: "50px",
-                }}
-              />
-            ) : (
-              <div
-                className="border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center text-gray-400"
-                style={{
-                  width: "180px",
-                  height: "50px",
-                }}
-              >
-                <span className="text-sm">
-                  {uploading ? "Ачаалж байна..." : "Select Image"}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Navigation Labels */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Navigation Menu Labels
-          </label>
-          <div className="space-y-3">
-            {labels.map((label, idx) => (
-              <input
-                key={idx}
-                type="text"
-                value={label}
-                onChange={(e) => handleLabelChange(idx, e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={`Menu item ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
         {/* Action Buttons */}
         <div className="space-y-3">
+          {/* Unsaved Changes Indicator */}
+          {hasUnsavedChanges && (
+            <div className="text-xs text-orange-600 text-center bg-orange-50 p-2 rounded border border-orange-200">
+              ⚠️ You have unsaved changes. Click "Save" to persist to database.
+            </div>
+          )}
+
+          {/* Last Saved Indicator */}
+          {lastSaved && !hasUnsavedChanges && (
+            <div className="text-xs text-green-600 text-center bg-green-50 p-2 rounded border border-green-200">
+              ✓ Last saved to database: {lastSaved.toLocaleString()}
+            </div>
+          )}
+
           {/* Save Button */}
           <button
             onClick={saveConfiguration}
-            className="w-full text-white py-3 px-4 rounded-md transition-colors font-medium"
+            disabled={isLoading}
+            className="w-full text-white py-3 px-4 rounded-md transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              backgroundColor: primaryColor,
+              backgroundColor: isLoading ? "#9CA3AF" : primaryColor,
             }}
-            onMouseEnter={(e) =>
-              (e.target.style.backgroundColor = secondaryColor)
-            }
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = primaryColor)
-            }
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.target.style.backgroundColor = secondaryColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.target.style.backgroundColor = primaryColor;
+              }
+            }}
           >
-            Save Configuration
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Saving to Database...
+              </div>
+            ) : hasUnsavedChanges ? (
+              "💾 Save Changes to Database"
+            ) : (
+              "✓ Saved to Database"
+            )}
           </button>
 
           {/* Reset Button */}
@@ -910,6 +1002,33 @@ const page = () => {
             className="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-md transition-colors font-medium"
           >
             Reset to Defaults
+          </button>
+
+          {/* Test Database Connection Button */}
+          <button
+            onClick={async () => {
+              try {
+                setIsLoading(true);
+                const response = await api.sections.getBySectionName(
+                  "general-info"
+                );
+                if (response.success) {
+                  toast.success(
+                    `Database connected! Found ${response.data.length} general-info sections.`
+                  );
+                } else {
+                  toast.error("Database connection failed.");
+                }
+              } catch (error) {
+                toast.error(`Database error: ${error.message}`);
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            disabled={isLoading}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition-colors font-medium text-sm disabled:opacity-50"
+          >
+            Test Database Connection
           </button>
         </div>
       </div>

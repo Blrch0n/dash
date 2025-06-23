@@ -1,5 +1,5 @@
 "use client";
-import { MdOutlineDashboard } from "react-icons/md";
+import { MdOutlineDashboard, MdOutlineCloudUpload } from "react-icons/md";
 import { RiInfoCardLine } from "react-icons/ri";
 import { IoChevronDownOutline } from "react-icons/io5";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
@@ -79,6 +79,12 @@ const sideBarMenu = [
     title: "Вэб хуудас",
     icon: <RiInfoCardLine />,
     link: "/webpage",
+    subMenu: [],
+  },
+  {
+    title: "File Server",
+    icon: <MdOutlineCloudUpload />,
+    link: "/file-server",
     subMenu: [],
   },
 ];

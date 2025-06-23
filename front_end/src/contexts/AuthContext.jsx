@@ -121,11 +121,50 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  // Add updateProfile function for profile page
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await api.user.updateProfile(profileData);
+      if (response.success) {
+        setUser(response.data.user);
+        // Update localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user-data", JSON.stringify(response.data.user));
+        }
+        return response;
+      }
+      throw new Error(response.message || "Failed to update profile");
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      throw error;
+    }
+  };
+
+  // Add changePassword function for account settings
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      const response = await api.auth.changePassword({
+        currentPassword,
+        newPassword,
+        confirmNewPassword: newPassword, // Backend validation requires this field
+      });
+      if (response.success) {
+        return response;
+      }
+      throw new Error(response.message || "Failed to change password");
+    } catch (error) {
+      console.error("Password change failed:", error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     login,
     logout,
     updateUser,
+    updateProfile,
+    changePassword,
     isAuthenticated: !!user,
     loading,
     isInitialized,

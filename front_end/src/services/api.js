@@ -505,6 +505,210 @@ export const api = {
       }
     },
   },
+
+  // File Server functionality (NGINX with CloudFlare)
+  fileServer: {
+    async healthCheck() {
+      try {
+        const response = await apiClient.get("/files/health");
+        return response;
+      } catch (error) {
+        console.error("File server health check error:", error);
+        throw error;
+      }
+    },
+
+    async uploadFile(file, customFilename = null) {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (customFilename) {
+        formData.append("filename", customFilename);
+      }
+
+      // Calculate timeout based on file size (minimum 60s, +30s per 10MB)
+      const fileSizeMB = file.size / (1024 * 1024);
+      const uploadTimeout = Math.max(
+        60000,
+        60000 + Math.ceil(fileSizeMB / 10) * 30000
+      );
+
+      console.log(
+        `Uploading file: ${file.name}, Size: ${fileSizeMB.toFixed(
+          2
+        )}MB, Timeout: ${uploadTimeout}ms`
+      );
+
+      try {
+        const response = await apiClient.post("/files/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: uploadTimeout,
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            console.log(`Upload progress: ${percentCompleted}%`);
+          },
+        });
+        return response;
+      } catch (error) {
+        console.error("File server upload error:", error);
+
+        // Provide more specific error messages
+        if (error.code === "ECONNRESET" || error.code === "ETIMEDOUT") {
+          throw new Error(
+            "Upload timeout - file may be too large or connection unstable"
+          );
+        } else if (error.response?.status === 413) {
+          throw new Error("File too large for server");
+        } else if (error.response?.status === 408) {
+          throw new Error(
+            "Upload timeout - try a smaller file or check your connection"
+          );
+        } else {
+          throw error;
+        }
+      }
+    },
+
+    async uploadMultipleFiles(files, customFilenames = null) {
+      const formData = new FormData();
+      files.forEach((file, index) => {
+        formData.append("files", file);
+      });
+
+      if (customFilenames && Array.isArray(customFilenames)) {
+        customFilenames.forEach((filename, index) => {
+          formData.append("filenames", filename);
+        });
+      }
+
+      try {
+        const response = await apiClient.post(
+          "/files/upload/multiple",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            timeout: 120000, // 2 minute timeout for multiple uploads
+          }
+        );
+        return response;
+      } catch (error) {
+        console.error("File server multiple upload error:", error);
+        throw error;
+      }
+    },
+
+    async deleteFile(filename) {
+      try {
+        const response = await apiClient.delete(
+          `/files/${encodeURIComponent(filename)}`
+        );
+        return response;
+      } catch (error) {
+        console.error("File server delete error:", error);
+        throw error;
+      }
+    },
+
+    async getFileUrl(filename) {
+      try {
+        const response = await apiClient.get(
+          `/files/url/${encodeURIComponent(filename)}`
+        );
+        return response;
+      } catch (error) {
+        console.error("File server URL error:", error);
+        throw error;
+      }
+    },
+
+    // Direct download URL (for use in <img> src, <a> href, etc.)
+    getDirectDownloadUrl(filename) {
+      return `${API_BASE_URL}/files/${encodeURIComponent(filename)}`;
+    },
+  },
+
+  // User profile management
+  user: {
+    async updateProfile(profileData) {
+      try {
+        return await apiClient.put("/auth/profile", profileData);
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+      }
+    },
+
+    async changePassword(passwordData) {
+      try {
+        return await apiClient.put("/auth/change-password", passwordData);
+      } catch (error) {
+        console.error("Error changing password:", error);
+        throw error;
+      }
+    },
+
+    async updateNotificationSettings(settings) {
+      try {
+        return await apiClient.put("/user/notification-settings", settings);
+      } catch (error) {
+        console.error("Error updating notification settings:", error);
+        throw error;
+      }
+    },
+
+    async updatePrivacySettings(settings) {
+      try {
+        return await apiClient.put("/user/privacy-settings", settings);
+      } catch (error) {
+        console.error("Error updating privacy settings:", error);
+        throw error;
+      }
+    },
+
+    async deleteAccount() {
+      try {
+        return await apiClient.delete("/user/account");
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        throw error;
+      }
+    },
+  },
+
+  // Support and help functionality
+  support: {
+    async submitTicket(ticketData) {
+      try {
+        return await apiClient.post("/support/tickets", ticketData);
+      } catch (error) {
+        console.error("Error submitting support ticket:", error);
+        throw error;
+      }
+    },
+
+    async getTickets() {
+      try {
+        return await apiClient.get("/support/tickets");
+      } catch (error) {
+        console.error("Error fetching support tickets:", error);
+        throw error;
+      }
+    },
+
+    async getSystemStatus() {
+      try {
+        return await apiClient.get("/support/system-status");
+      } catch (error) {
+        console.error("Error fetching system status:", error);
+        throw error;
+      }
+    },
+  },
 };
 
 // Export authAPI as an alias for easier import

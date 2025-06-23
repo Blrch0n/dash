@@ -27,12 +27,14 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
-    "multer": "^2.0.1",
     "morgan": "^1.10.0",
+    "multer": "^2.0.1",
     "nodemailer": "^7.0.3"
   },
   "devDependencies": {
     "axios": "^1.10.0",
-    "nodemon": "^3.0.1"
+    "formdata-node": "^6.0.3",
+    "nodemon": "^3.0.1",
+    "undici": "^7.10.0"
   }
 }

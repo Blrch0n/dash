@@ -67,8 +67,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Body parsing middleware
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(bodyParser.json({ limit: "100mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
 app.use(cookieParser());
 
 // Connect to MongoDB
@@ -97,28 +97,7 @@ app.use(
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/sections", require("./routes/sections"));
 app.use("/api/upload", require("./routes/upload"));
-
-// Global error handler (must be after routes)
-app.use(require("./middleware/errorHandler"));
-
-// Handle 404
-app.use("*", (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
-// Global error handler (must be after routes)
-app.use(require("./middleware/errorHandler"));
-
-// Handle 404
-app.use("*", (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
+app.use("/api/files", require("./routes/files"));
 
 // Health check route
 app.get("/api/health", (req, res) => {
@@ -143,9 +122,26 @@ app.get("/", (req, res) => {
       "POST /api/sections",
       "PUT /api/sections/:id",
       "DELETE /api/sections/:id",
+      "GET /api/files/health",
+      "GET /api/files/:filename",
+      "POST /api/files/upload",
+      "POST /api/files/upload/multiple",
+      "DELETE /api/files/:filename",
+      "GET /api/files/url/:filename",
     ],
   });
 });
+
+// Handle 404 (must be after all routes)
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+// Global error handler (must be last)
+app.use(require("./middleware/errorHandler"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
