@@ -17,6 +17,10 @@ const {
 const { authenticateToken, optionalAuth } = require("../middleware/auth");
 const { upload, handleMulterError } = require("../middleware/upload");
 const { processImages } = require("../middleware/imageProcessor");
+const {
+  validateSectionData,
+  validateColorsObject,
+} = require("../middleware/sectionValidation");
 
 // Get all sections (public read access)
 router.get("/", optionalAuth, getAllSections);
@@ -47,6 +51,8 @@ router.post(
       processImages(req, res, next);
     }
   },
+  validateSectionData,
+  validateColorsObject,
   createOrUpdateSection
 );
 
@@ -70,6 +76,8 @@ router.put(
       processImages(req, res, next);
     }
   },
+  validateSectionData,
+  validateColorsObject,
   updateSectionById
 );
 
@@ -77,10 +85,38 @@ router.put(
 router.delete("/:id", authenticateToken, deleteSectionById);
 
 // Bulk create/update sections (useful for frontend data sync)
-router.post("/bulk", authenticateToken, bulkUpdateSections);
+router.post(
+  "/bulk",
+  authenticateToken,
+  validateSectionData,
+  validateColorsObject,
+  bulkUpdateSections
+);
 
 // Apply global colors to all sections
 router.post("/apply-global-colors", authenticateToken, applyGlobalColors);
+
+// Clean up duplicate color properties in existing sections
+router.post("/cleanup-colors", authenticateToken, async (req, res) => {
+  try {
+    const {
+      cleanupDuplicateColorProperties,
+    } = require("../utils/cleanupDuplicateColors");
+    const updatedCount = await cleanupDuplicateColorProperties();
+
+    res.json({
+      success: true,
+      message: `Cleaned up duplicate color properties in ${updatedCount} sections`,
+      updatedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error cleaning up duplicate colors",
+      error: error.message,
+    });
+  }
+});
 
 // Error handling middleware for multer
 router.use(handleMulterError);

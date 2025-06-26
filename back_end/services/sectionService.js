@@ -168,7 +168,22 @@ class SectionService {
       subsectionName: "main",
     });
 
-    if (generalInfo && generalInfo.data) {
+    if (generalInfo && generalInfo.data && generalInfo.data.colors) {
+      // Use colors object if it exists
+      return {
+        primaryColor: generalInfo.data.colors.primaryColor || "#3B82F6",
+        secondaryColor: generalInfo.data.colors.secondaryColor || "#1E40AF",
+        accentColor: generalInfo.data.colors.accentColor || "#EF4444",
+        backgroundColor: generalInfo.data.colors.backgroundColor || "#FFFFFF",
+        textColor: generalInfo.data.colors.textColor || "#1F2937",
+        scrolledBgColor: generalInfo.data.colors.scrolledBgColor || "#FFFFFF",
+        scrolledTextColor:
+          generalInfo.data.colors.scrolledTextColor || "#1F2937",
+        hoverColor: generalInfo.data.colors.hoverColor || "#3B82F6",
+        borderColor: generalInfo.data.colors.borderColor || "#E5E7EB",
+      };
+    } else if (generalInfo && generalInfo.data) {
+      // Fallback to individual properties for backward compatibility
       return {
         primaryColor: generalInfo.data.primaryColor || "#3B82F6",
         secondaryColor: generalInfo.data.secondaryColor || "#1E40AF",

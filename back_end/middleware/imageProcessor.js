@@ -53,8 +53,13 @@ function processDataImages(data) {
   if (Array.isArray(data)) {
     return data.map((item) => processDataImages(item));
   }
+
   const processed = {};
-  for (const [key, value] of Object.entries(data)) {
+
+  // Clean up duplicate color properties
+  const cleanedData = cleanDuplicateColors(data);
+
+  for (const [key, value] of Object.entries(cleanedData)) {
     if (
       key === "image" &&
       typeof value === "string" &&
@@ -71,6 +76,47 @@ function processDataImages(data) {
   }
 
   return processed;
+}
+
+/**
+ * Clean duplicate color properties from data object
+ * Remove individual color properties if they exist alongside a colors object
+ */
+function cleanDuplicateColors(data) {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return data;
+  }
+
+  const colorProperties = [
+    "primaryColor",
+    "secondaryColor",
+    "accentColor",
+    "backgroundColor",
+    "textColor",
+    "scrolledBgColor",
+    "scrolledTextColor",
+    "hoverColor",
+    "borderColor",
+  ];
+
+  // If there's a colors object, remove individual color properties
+  if (data.colors && typeof data.colors === "object") {
+    const cleaned = { ...data };
+
+    // Remove duplicate individual color properties
+    colorProperties.forEach((colorProp) => {
+      if (cleaned.hasOwnProperty(colorProp)) {
+        delete cleaned[colorProp];
+      }
+    });
+
+    console.log(
+      "Cleaned duplicate color properties, keeping only colors object"
+    );
+    return cleaned;
+  }
+
+  return data;
 }
 
 /**

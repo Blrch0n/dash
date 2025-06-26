@@ -102,25 +102,9 @@ const createOrUpdateSection = async (req, res) => {
       try {
         // Extract the new colors from the updated general-info section
         const newColors = {};
-        if (req.body.data) {
-          if (req.body.data.primaryColor)
-            newColors.primaryColor = req.body.data.primaryColor;
-          if (req.body.data.secondaryColor)
-            newColors.secondaryColor = req.body.data.secondaryColor;
-          if (req.body.data.accentColor)
-            newColors.accentColor = req.body.data.accentColor;
-          if (req.body.data.backgroundColor)
-            newColors.backgroundColor = req.body.data.backgroundColor;
-          if (req.body.data.textColor)
-            newColors.textColor = req.body.data.textColor;
-          if (req.body.data.scrolledBgColor)
-            newColors.scrolledBgColor = req.body.data.scrolledBgColor;
-          if (req.body.data.scrolledTextColor)
-            newColors.scrolledTextColor = req.body.data.scrolledTextColor;
-          if (req.body.data.hoverColor)
-            newColors.hoverColor = req.body.data.hoverColor;
-          if (req.body.data.borderColor)
-            newColors.borderColor = req.body.data.borderColor;
+        if (req.body.data && req.body.data.colors) {
+          // Use colors object instead of individual properties
+          Object.assign(newColors, req.body.data.colors);
         }
 
         if (Object.keys(newColors).length > 0) {
@@ -189,25 +173,9 @@ const updateSectionById = async (req, res) => {
       try {
         // Extract the new colors from the updated section
         const newColors = {};
-        if (req.body.data) {
-          if (req.body.data.primaryColor)
-            newColors.primaryColor = req.body.data.primaryColor;
-          if (req.body.data.secondaryColor)
-            newColors.secondaryColor = req.body.data.secondaryColor;
-          if (req.body.data.accentColor)
-            newColors.accentColor = req.body.data.accentColor;
-          if (req.body.data.backgroundColor)
-            newColors.backgroundColor = req.body.data.backgroundColor;
-          if (req.body.data.textColor)
-            newColors.textColor = req.body.data.textColor;
-          if (req.body.data.scrolledBgColor)
-            newColors.scrolledBgColor = req.body.data.scrolledBgColor;
-          if (req.body.data.scrolledTextColor)
-            newColors.scrolledTextColor = req.body.data.scrolledTextColor;
-          if (req.body.data.hoverColor)
-            newColors.hoverColor = req.body.data.hoverColor;
-          if (req.body.data.borderColor)
-            newColors.borderColor = req.body.data.borderColor;
+        if (req.body.data && req.body.data.colors) {
+          // Use colors object instead of individual properties
+          Object.assign(newColors, req.body.data.colors);
         }
 
         if (Object.keys(newColors).length > 0) {

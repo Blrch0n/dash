@@ -1022,57 +1022,639 @@ const Section1Page = () => {
               </h3>
 
               {/* Left Content Editor */}
+              {section1Data?.sections?.[activeTab]?.leftContent && (
+                <div className="space-y-3 mb-4">
+                  <h4 className="text-xs font-medium text-gray-600">
+                    Left Content
+                  </h4>
+                  <input
+                    type="text"
+                    value={
+                      section1Data.sections[activeTab].leftContent.title || ""
+                    }
+                    onChange={(e) => {
+                      setSection1Data((prev) => ({
+                        ...prev,
+                        sections: {
+                          ...prev.sections,
+                          [activeTab]: {
+                            ...prev.sections[activeTab],
+                            leftContent: {
+                              ...prev.sections[activeTab].leftContent,
+                              title: e.target.value,
+                            },
+                          },
+                        },
+                      }));
+                    }}
+                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Left section title"
+                  />
+                  <textarea
+                    value={
+                      section1Data.sections[activeTab].leftContent
+                        .description || ""
+                    }
+                    onChange={(e) => {
+                      setSection1Data((prev) => ({
+                        ...prev,
+                        sections: {
+                          ...prev.sections,
+                          [activeTab]: {
+                            ...prev.sections[activeTab],
+                            leftContent: {
+                              ...prev.sections[activeTab].leftContent,
+                              description: e.target.value,
+                            },
+                          },
+                        },
+                      }));
+                    }}
+                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows="3"
+                    placeholder="Left section description"
+                  />
+                </div>
+              )}
+
+              {/* Tab-specific content editors */}
+              {activeTab === "Prototypes" &&
+                section1Data?.sections?.Prototypes?.rightContent && (
+                  <div className="space-y-4 mb-4">
+                    <h4 className="text-xs font-medium text-gray-600">
+                      Right Content Cards
+                    </h4>
+                    {section1Data.sections.Prototypes.rightContent.map(
+                      (item, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-gray-50 rounded-md space-y-2"
+                        >
+                          <label className="text-xs text-gray-600">
+                            Card {index + 1}
+                          </label>
+                          <select
+                            value={item.icon}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Prototypes: {
+                                    ...prev.sections.Prototypes,
+                                    rightContent:
+                                      prev.sections.Prototypes.rightContent.map(
+                                        (c, i) =>
+                                          i === index
+                                            ? { ...c, icon: e.target.value }
+                                            : c
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="IoUmbrellaOutline">Umbrella</option>
+                            <option value="PiLego">Lego</option>
+                            <option value="TbHammer">Hammer</option>
+                            <option value="PiStudent">Student</option>
+                            <option value="FaRegUserCircle">User Circle</option>
+                            <option value="RiToolsFill">Tools</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Prototypes: {
+                                    ...prev.sections.Prototypes,
+                                    rightContent:
+                                      prev.sections.Prototypes.rightContent.map(
+                                        (c, i) =>
+                                          i === index
+                                            ? { ...c, title: e.target.value }
+                                            : c
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Card title"
+                          />
+                          <input
+                            type="text"
+                            value={item.subtitle}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Prototypes: {
+                                    ...prev.sections.Prototypes,
+                                    rightContent:
+                                      prev.sections.Prototypes.rightContent.map(
+                                        (c, i) =>
+                                          i === index
+                                            ? { ...c, subtitle: e.target.value }
+                                            : c
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Card subtitle"
+                          />
+                          <input
+                            type="url"
+                            value={item.backgroundImage}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Prototypes: {
+                                    ...prev.sections.Prototypes,
+                                    rightContent:
+                                      prev.sections.Prototypes.rightContent.map(
+                                        (c, i) =>
+                                          i === index
+                                            ? {
+                                                ...c,
+                                                backgroundImage: e.target.value,
+                                              }
+                                            : c
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Background image URL"
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+
+              {activeTab === "Development" &&
+                section1Data?.sections?.Development?.services && (
+                  <div className="space-y-4 mb-4">
+                    <h4 className="text-xs font-medium text-gray-600">
+                      Services
+                    </h4>
+                    {section1Data.sections.Development.services.map(
+                      (service, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-gray-50 rounded-md space-y-2"
+                        >
+                          <label className="text-xs text-gray-600">
+                            Service {index + 1}
+                          </label>
+                          <select
+                            value={service.icon}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Development: {
+                                    ...prev.sections.Development,
+                                    services:
+                                      prev.sections.Development.services.map(
+                                        (s, i) =>
+                                          i === index
+                                            ? { ...s, icon: e.target.value }
+                                            : s
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="TbHammer">Hammer</option>
+                            <option value="PiStudent">Student</option>
+                            <option value="FaRegUserCircle">User Circle</option>
+                            <option value="RiToolsFill">Tools</option>
+                            <option value="IoUmbrellaOutline">Umbrella</option>
+                            <option value="PiLego">Lego</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={service.title}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Development: {
+                                    ...prev.sections.Development,
+                                    services:
+                                      prev.sections.Development.services.map(
+                                        (s, i) =>
+                                          i === index
+                                            ? { ...s, title: e.target.value }
+                                            : s
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Service title"
+                          />
+                          <textarea
+                            value={service.description}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Development: {
+                                    ...prev.sections.Development,
+                                    services:
+                                      prev.sections.Development.services.map(
+                                        (s, i) =>
+                                          i === index
+                                            ? {
+                                                ...s,
+                                                description: e.target.value,
+                                              }
+                                            : s
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            rows="2"
+                            placeholder="Service description"
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+
+              {activeTab === "Design" && section1Data?.sections?.Design && (
+                <>
+                  {/* Services for Design tab */}
+                  {section1Data.sections.Design.services && (
+                    <div className="space-y-4 mb-4">
+                      <h4 className="text-xs font-medium text-gray-600">
+                        Services
+                      </h4>
+                      {section1Data.sections.Design.services.map(
+                        (service, index) => (
+                          <div
+                            key={index}
+                            className="p-3 bg-gray-50 rounded-md space-y-2"
+                          >
+                            <label className="text-xs text-gray-600">
+                              Service {index + 1}
+                            </label>
+                            <select
+                              value={service.icon}
+                              onChange={(e) => {
+                                setSection1Data((prev) => ({
+                                  ...prev,
+                                  sections: {
+                                    ...prev.sections,
+                                    Design: {
+                                      ...prev.sections.Design,
+                                      services:
+                                        prev.sections.Design.services.map(
+                                          (s, i) =>
+                                            i === index
+                                              ? { ...s, icon: e.target.value }
+                                              : s
+                                        ),
+                                    },
+                                  },
+                                }));
+                              }}
+                              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="TbHammer">Hammer</option>
+                              <option value="PiStudent">Student</option>
+                              <option value="FaRegUserCircle">
+                                User Circle
+                              </option>
+                              <option value="RiToolsFill">Tools</option>
+                              <option value="IoUmbrellaOutline">
+                                Umbrella
+                              </option>
+                              <option value="PiLego">Lego</option>
+                            </select>
+                            <input
+                              type="text"
+                              value={service.title}
+                              onChange={(e) => {
+                                setSection1Data((prev) => ({
+                                  ...prev,
+                                  sections: {
+                                    ...prev.sections,
+                                    Design: {
+                                      ...prev.sections.Design,
+                                      services:
+                                        prev.sections.Design.services.map(
+                                          (s, i) =>
+                                            i === index
+                                              ? { ...s, title: e.target.value }
+                                              : s
+                                        ),
+                                    },
+                                  },
+                                }));
+                              }}
+                              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Service title"
+                            />
+                            <textarea
+                              value={service.description}
+                              onChange={(e) => {
+                                setSection1Data((prev) => ({
+                                  ...prev,
+                                  sections: {
+                                    ...prev.sections,
+                                    Design: {
+                                      ...prev.sections.Design,
+                                      services:
+                                        prev.sections.Design.services.map(
+                                          (s, i) =>
+                                            i === index
+                                              ? {
+                                                  ...s,
+                                                  description: e.target.value,
+                                                }
+                                              : s
+                                        ),
+                                    },
+                                  },
+                                }));
+                              }}
+                              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows="2"
+                              placeholder="Service description"
+                            />
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
+
+                  {/* Right Card for Design tab */}
+                  {section1Data.sections.Design.rightCard && (
+                    <div className="space-y-3 mb-4">
+                      <h4 className="text-xs font-medium text-gray-600">
+                        Right Card
+                      </h4>
+                      <div className="p-3 bg-gray-50 rounded-md space-y-2">
+                        <select
+                          value={
+                            section1Data?.sections?.Design?.rightCard?.icon ||
+                            "PiLego"
+                          }
+                          onChange={(e) => {
+                            setSection1Data((prev) => ({
+                              ...prev,
+                              sections: {
+                                ...prev.sections,
+                                Design: {
+                                  ...prev.sections.Design,
+                                  rightCard: {
+                                    ...prev.sections.Design.rightCard,
+                                    icon: e.target.value,
+                                  },
+                                },
+                              },
+                            }));
+                          }}
+                          className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="IoUmbrellaOutline">Umbrella</option>
+                          <option value="PiLego">Lego</option>
+                          <option value="TbHammer">Hammer</option>
+                          <option value="PiStudent">Student</option>
+                          <option value="FaRegUserCircle">User Circle</option>
+                          <option value="RiToolsFill">Tools</option>
+                        </select>
+                        <input
+                          type="text"
+                          value={
+                            section1Data?.sections?.Design?.rightCard?.title ||
+                            ""
+                          }
+                          onChange={(e) => {
+                            setSection1Data((prev) => ({
+                              ...prev,
+                              sections: {
+                                ...prev.sections,
+                                Design: {
+                                  ...prev.sections.Design,
+                                  rightCard: {
+                                    ...prev.sections.Design.rightCard,
+                                    title: e.target.value,
+                                  },
+                                },
+                              },
+                            }));
+                          }}
+                          className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Card title"
+                        />
+                        <input
+                          type="text"
+                          value={
+                            section1Data?.sections?.Design?.rightCard
+                              ?.subtitle || ""
+                          }
+                          onChange={(e) => {
+                            setSection1Data((prev) => ({
+                              ...prev,
+                              sections: {
+                                ...prev.sections,
+                                Design: {
+                                  ...prev.sections.Design,
+                                  rightCard: {
+                                    ...prev.sections.Design.rightCard,
+                                    subtitle: e.target.value,
+                                  },
+                                },
+                              },
+                            }));
+                          }}
+                          className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Card subtitle"
+                        />
+                        <input
+                          type="url"
+                          value={
+                            section1Data?.sections?.Design?.rightCard
+                              ?.backgroundImage || ""
+                          }
+                          onChange={(e) => {
+                            setSection1Data((prev) => ({
+                              ...prev,
+                              sections: {
+                                ...prev.sections,
+                                Design: {
+                                  ...prev.sections.Design,
+                                  rightCard: {
+                                    ...prev.sections.Design.rightCard,
+                                    backgroundImage: e.target.value,
+                                  },
+                                },
+                              },
+                            }));
+                          }}
+                          className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Background image URL"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Support tab editor */}
+              {activeTab === "Support" &&
+                section1Data?.sections?.Support?.services && (
+                  <div className="space-y-4 mb-4">
+                    <h4 className="text-xs font-medium text-gray-600">
+                      Services
+                    </h4>
+                    {section1Data.sections.Support.services.map(
+                      (service, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-gray-50 rounded-md space-y-2"
+                        >
+                          <label className="text-xs text-gray-600">
+                            Service {index + 1}
+                          </label>
+                          <select
+                            value={service.icon}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Support: {
+                                    ...prev.sections.Support,
+                                    services:
+                                      prev.sections.Support.services.map(
+                                        (s, i) =>
+                                          i === index
+                                            ? { ...s, icon: e.target.value }
+                                            : s
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="TbHammer">Hammer</option>
+                            <option value="PiStudent">Student</option>
+                            <option value="FaRegUserCircle">User Circle</option>
+                            <option value="RiToolsFill">Tools</option>
+                            <option value="IoUmbrellaOutline">Umbrella</option>
+                            <option value="PiLego">Lego</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={service.title}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Support: {
+                                    ...prev.sections.Support,
+                                    services:
+                                      prev.sections.Support.services.map(
+                                        (s, i) =>
+                                          i === index
+                                            ? { ...s, title: e.target.value }
+                                            : s
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Service title"
+                          />
+                          <textarea
+                            value={service.description}
+                            onChange={(e) => {
+                              setSection1Data((prev) => ({
+                                ...prev,
+                                sections: {
+                                  ...prev.sections,
+                                  Support: {
+                                    ...prev.sections.Support,
+                                    services:
+                                      prev.sections.Support.services.map(
+                                        (s, i) =>
+                                          i === index
+                                            ? {
+                                                ...s,
+                                                description: e.target.value,
+                                              }
+                                            : s
+                                      ),
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            rows="2"
+                            placeholder="Service description"
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+
+              {/* Main Text Editor (global) */}
               <div className="space-y-3 mb-4">
                 <h4 className="text-xs font-medium text-gray-600">
-                  Left Content
+                  Main Text & Description
                 </h4>
                 <input
                   type="text"
-                  value={
-                    section1Data?.sections?.[activeTab]?.leftContent?.title ||
-                    ""
-                  }
+                  value={section1Data?.mainText || ""}
                   onChange={(e) => {
                     setSection1Data((prev) => ({
                       ...prev,
-                      sections: {
-                        ...prev.sections,
-                        [activeTab]: {
-                          ...prev.sections[activeTab],
-                          leftContent: {
-                            ...prev.sections[activeTab].leftContent,
-                            title: e.target.value,
-                          },
-                        },
-                      },
+                      mainText: e.target.value,
                     }));
                   }}
                   className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Left section title"
+                  placeholder="Main text"
                 />
                 <textarea
-                  value={
-                    section1Data?.sections?.[activeTab]?.leftContent
-                      ?.description || ""
-                  }
+                  value={section1Data?.description || ""}
                   onChange={(e) => {
                     setSection1Data((prev) => ({
                       ...prev,
-                      sections: {
-                        ...prev.sections,
-                        [activeTab]: {
-                          ...prev.sections[activeTab],
-                          leftContent: {
-                            ...prev.sections[activeTab].leftContent,
-                            description: e.target.value,
-                          },
-                        },
-                      },
+                      description: e.target.value,
                     }));
                   }}
                   className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows="3"
-                  placeholder="Left section description"
+                  placeholder="Main description"
                 />
               </div>
 
@@ -1097,6 +1679,159 @@ const Section1Page = () => {
                     ? "Three column layout (Left content | Services | Right card)"
                     : "Two column layout (Left content | Right content)"}
                 </p>
+              </div>
+            </div>
+
+            {/* Color Settings */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Color Settings
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">
+                    Primary Color:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={section1Data?.colors?.primaryColor || "#3B82F6"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            primaryColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="w-12 h-8 border border-gray-300 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={section1Data?.colors?.primaryColor || "#3B82F6"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            primaryColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="flex-1 p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="#3B82F6"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">
+                    Secondary Color:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={section1Data?.colors?.secondaryColor || "#1E40AF"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            secondaryColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="w-12 h-8 border border-gray-300 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={section1Data?.colors?.secondaryColor || "#1E40AF"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            secondaryColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="flex-1 p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="#1E40AF"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">
+                    Text Color:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={section1Data?.colors?.textColor || "#1F2937"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            textColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="w-12 h-8 border border-gray-300 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={section1Data?.colors?.textColor || "#1F2937"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            textColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="flex-1 p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="#1F2937"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">
+                    Background Color:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={section1Data?.colors?.backgroundColor || "#FFFFFF"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            backgroundColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="w-12 h-8 border border-gray-300 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={section1Data?.colors?.backgroundColor || "#FFFFFF"}
+                      onChange={(e) => {
+                        setSection1Data((prev) => ({
+                          ...prev,
+                          colors: {
+                            ...prev.colors,
+                            backgroundColor: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="flex-1 p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="#FFFFFF"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -63,9 +63,49 @@ This is a Node.js/Express backend API for a dashboard application with user auth
 
 - `GET /api/sections` - Get all sections
 - `GET /api/sections/:sectionName` - Get specific section
+- `GET /api/sections/:sectionName/:subsectionName` - Get specific subsection
 - `POST /api/sections` - Create new section (Admin only)
 - `PUT /api/sections/:id` - Update section (Admin only)
 - `DELETE /api/sections/:id` - Delete section (Admin only)
+- `POST /api/sections/bulk` - Bulk update sections (Admin only)
+- `POST /api/sections/apply-global-colors` - Apply global colors to all sections (Admin only)
+- `POST /api/sections/cleanup-colors` - Clean up duplicate color properties (Admin only)
+
+#### Color Management
+
+The API has been optimized to handle color data efficiently:
+
+- **Colors Object**: All color data should be stored in a `colors` object within the section data
+- **Duplicate Prevention**: The API automatically removes duplicate individual color properties when a `colors` object exists
+- **Global Colors**: Colors from the `general-info` section are applied globally to other sections
+
+**Example Request Body for Section with Colors:**
+
+```json
+{
+  "sectionName": "header",
+  "subsectionName": "main",
+  "title": "Header Configuration",
+  "content": "Header section with navigation and logo",
+  "data": {
+    "labels": ["Home", "About", "Services", "Contact"],
+    "image": "http://localhost:5000/api/uploads/images/header.jpg",
+    "colors": {
+      "primaryColor": "#141414",
+      "secondaryColor": "#f10404",
+      "accentColor": "#878787",
+      "backgroundColor": "#ffffff",
+      "textColor": "#517acd",
+      "scrolledBgColor": "#cd463c",
+      "scrolledTextColor": "#a5eedc",
+      "hoverColor": "#3bf906",
+      "borderColor": "#E5E7EB"
+    }
+  }
+}
+```
+
+**Note**: Individual color properties (e.g., `primaryColor`, `secondaryColor`) at the root level of the `data` object will be automatically removed if a `colors` object is present to prevent duplication.
 
 ### Admin
 
