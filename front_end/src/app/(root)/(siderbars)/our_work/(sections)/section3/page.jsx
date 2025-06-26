@@ -240,7 +240,13 @@ const ViewModeToggle = ({ viewMode, setViewMode, primaryColor }) => (
 );
 
 // Editor Form Component
-const EditorForm = ({ section3Data, onDataChange, colors, uploading, uploadImage }) => {
+const EditorForm = ({
+  section3Data,
+  onDataChange,
+  colors,
+  uploading,
+  uploadImage,
+}) => {
   const handleTitleChange = (field, value) => {
     onDataChange({
       ...section3Data,
@@ -406,16 +412,6 @@ const EditorForm = ({ section3Data, onDataChange, colors, uploading, uploadImage
                   </div>
                 )}
               </div>
-
-              <input
-                type="text"
-                value={service.image || ""}
-                onChange={(e) =>
-                  handleServiceChange(index, "image", e.target.value)
-                }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent mt-2"
-                placeholder="Image URL (эсвэл дээрээс файл сонгоно уу)"
-              />
             </div>
           ))}
         </div>

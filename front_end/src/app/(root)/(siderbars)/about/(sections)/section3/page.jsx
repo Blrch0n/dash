@@ -5,51 +5,6 @@ import toast, { Toaster } from "react-hot-toast";
 import { api } from "../../../../../../services/api";
 import { useFileUpload } from "../../../../../../hooks/useFileUpload";
 
-// Default section3 data structure
-const defaultSection3Data = {
-  uniqueSpace: {
-    title: "UNIQUE SPACE",
-    subtitle: "Slight Differences Can Trigger Creativity",
-    description:
-      "We are the comprehensive design and technology partner for the digital age. We help businesses to stay relevant to their customers in the digital era by touching hearts and minds.",
-  },
-  accordion: [
-    {
-      id: 1,
-      title: "Design Excellence",
-      content:
-        "We create visually stunning and user-friendly designs that capture your brand essence and engage your audience effectively.",
-    },
-    {
-      id: 2,
-      title: "Technology Innovation",
-      content:
-        "Our cutting-edge technology solutions help businesses stay ahead in the rapidly evolving digital landscape.",
-    },
-    {
-      id: 3,
-      title: "Digital Strategy",
-      content:
-        "We develop comprehensive digital strategies that align with your business goals and drive measurable results.",
-    },
-  ],
-  image: {
-    src: "https://i.pinimg.com/736x/dd/1c/5b/dd1c5b14fc8446a4741fdb979c4fe3cc.jpg",
-    alt: "Creative workspace",
-  },
-  colors: {
-    primaryColor: "#3B82F6",
-    secondaryColor: "#1E40AF",
-    accentColor: "#EF4444",
-    backgroundColor: "#FFFFFF",
-    textColor: "#1F2937",
-    scrolledBgColor: "#FFFFFF",
-    scrolledTextColor: "#1F2937",
-    hoverColor: "#3B82F6",
-    borderColor: "#E5E7EB",
-  },
-};
-
 // Toast Container Component
 const ToastContainer = () => (
   <Toaster
@@ -87,16 +42,20 @@ const LoadingScreen = ({ message = "Loading..." }) => (
   </div>
 );
 
-// Error Screen Component with Create Option
-const ErrorScreen = ({ error, onRetry, onCreate }) => (
+// Error Screen Component
+const ErrorScreen = ({ error, onRetry }) => (
   <div className="w-full h-full flex gap-5 bg-gray-50 p-5">
     <div className="h-full w-[70%] bg-white rounded-lg p-4 flex flex-col items-center justify-center">
       <div className="text-red-500 mb-4">Error: {error}</div>
-      <div className="text-gray-600 text-sm text-center">
-        It looks like the section3 data doesn't exist in the database.
-        <br />
-        You can create it with default data or retry loading.
+      <div className="text-gray-600 text-sm text-center mb-4">
+        Failed to load section3 data from the backend.
       </div>
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+      >
+        Retry
+      </button>
     </div>
     <div className="h-full w-[30%] bg-white rounded-lg p-4 space-y-4">
       <button
@@ -304,7 +263,13 @@ const ViewModeToggle = ({ viewMode, setViewMode, primaryColor }) => (
 );
 
 // Editor Form Component
-const EditorForm = ({ section3Data, onDataChange, colors, uploading, uploadImage }) => {
+const EditorForm = ({
+  section3Data,
+  onDataChange,
+  colors,
+  uploading,
+  uploadImage,
+}) => {
   const handleUniqueSpaceChange = (field, value) => {
     onDataChange({
       ...section3Data,
@@ -469,11 +434,19 @@ const EditorForm = ({ section3Data, onDataChange, colors, uploading, uploadImage
 };
 
 // Color Preview Component
-const ColorPreview = ({ colors }) => (
+const ColorPreview = ({ colors, onRefreshColors }) => (
   <div className="p-4 bg-gray-50 rounded-lg">
-    <h3 className="text-sm font-medium text-gray-700 mb-3">
-      Одоогийн өнгөний тохиргоо
-    </h3>
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="text-sm font-medium text-gray-700">
+        Одоогийн өнгөний тохиргоо
+      </h3>
+      <button
+        onClick={onRefreshColors}
+        className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+      >
+        Refresh
+      </button>
+    </div>
     <div className="space-y-2 text-xs">
       <div className="flex items-center justify-between">
         <span>Primary:</span>
@@ -542,36 +515,17 @@ const Section3Page = () => {
     setActiveAccordion(activeAccordion === index ? null : index);
   };
 
-  // Create section3 data with defaults
-  const createSection3Data = async () => {
+  // Function to load colors from general-info section
+  const loadGeneralInfoColors = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-      toast.loading("Creating section3 data...", { id: "creating" });
-
-      const result = await api.saveSection({
-        sectionName: "about",
-        subsectionName: "section3",
-        title: "Our Vision",
-        content: "About section 3 content",
-        data: defaultSection3Data,
-      });
-
-      if (result.success) {
-        setSection3Data(defaultSection3Data);
-        toast.success("Section3 data created successfully!", {
-          id: "creating",
-        });
-      } else {
-        throw new Error("Failed to create section3 data");
+      const result = await api.getSubsection("general-info", "main");
+      if (result.success && result.data?.data?.colors) {
+        return result.data.data.colors;
       }
     } catch (error) {
-      console.error("Error creating section3 data:", error);
-      setError("Failed to create section3 data");
-      toast.error("Failed to create section3 data", { id: "creating" });
-    } finally {
-      setIsLoading(false);
+      console.error("Error loading general-info colors:", error);
     }
+    return null;
   };
 
   // Data loading from backend
@@ -581,16 +535,28 @@ const Section3Page = () => {
       setError(null);
 
       console.log("🔍 Loading section3 data...");
+
+      // Load general-info colors first
+      const generalInfoColors = await loadGeneralInfoColors();
+      console.log("General info colors:", generalInfoColors);
+
       const result = await api.getSubsection("about", "section3");
       console.log("📊 API Result:", result);
 
       if (result.success && result.data?.data) {
-        setSection3Data(result.data.data);
+        const sectionData = result.data.data;
+
+        // Use general-info colors if available, otherwise use section colors
+        if (generalInfoColors) {
+          sectionData.colors = generalInfoColors;
+        }
+
+        setSection3Data(sectionData);
         toast.success("Section3 мэдээлэл амжилттай ачааллагдлаа!");
       } else {
-        console.log("❌ No data found, will show create option");
+        console.log("❌ No data found in backend");
         setError("No section3 data found in database");
-        // Don't show error toast immediately, let user choose to create
+        toast.error("Section3 өгөгдөл олдсонгүй!");
       }
     } catch (error) {
       console.error("Error loading section3 data:", error);
@@ -637,6 +603,23 @@ const Section3Page = () => {
     }
   };
 
+  // Handle refreshing colors from general-info
+  const handleRefreshColors = async () => {
+    try {
+      const generalInfoColors = await loadGeneralInfoColors();
+      if (generalInfoColors && section3Data) {
+        const updatedData = {
+          ...section3Data,
+          colors: generalInfoColors,
+        };
+        setSection3Data(updatedData);
+        toast.success("Өнгөний тохиргоо шинэчлэгдлээ!");
+      }
+    } catch (error) {
+      toast.error("Өнгө шинэчлэхэд алдаа гарлаа!");
+    }
+  };
+
   // Event handlers
   const handleManualSave = () => {
     if (section3Data) {
@@ -665,21 +648,15 @@ const Section3Page = () => {
   }, [section3Data, isClient, isLoading]);
 
   // Render conditions
-  if (!isClient || isLoading) {
+  if (!isClient || isLoading || !section3Data) {
     return <LoadingScreen message="Loading section3 data from backend..." />;
   }
 
-  if (error && !section3Data) {
-    return (
-      <ErrorScreen
-        error={error}
-        onRetry={loadData}
-        onCreate={createSection3Data}
-      />
-    );
+  if (error) {
+    return <ErrorScreen error={error} onRetry={loadData} />;
   }
 
-  const colors = section3Data?.colors || defaultSection3Data.colors;
+  const colors = section3Data?.colors || {};
 
   return (
     <>
@@ -704,7 +681,7 @@ const Section3Page = () => {
               }}
             >
               <PreviewComponent
-                section3Data={section3Data || defaultSection3Data}
+                section3Data={section3Data}
                 colors={colors}
                 isMobile={viewMode === "mobile"}
                 activeAccordion={activeAccordion}
@@ -738,7 +715,16 @@ const Section3Page = () => {
             uploadImage={uploadImage}
           />
 
-          <ColorPreview colors={colors} />
+          <ColorPreview colors={colors} onRefreshColors={handleRefreshColors} />
+
+          {/* Manual Refresh Button */}
+          <button
+            onClick={loadData}
+            disabled={isLoading}
+            className="w-full bg-gray-500 text-white py-2 px-4 rounded-md transition-colors font-medium mb-3 disabled:opacity-50 hover:bg-gray-600"
+          >
+            {isLoading ? "Ачаалж байна..." : "Бүх өгөгдөл дахин ачаалах"}
+          </button>
 
           {/* Save Button */}
           <button

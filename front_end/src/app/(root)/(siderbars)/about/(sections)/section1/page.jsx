@@ -123,32 +123,16 @@ const PreviewComponent = ({ section1Data, colors, isMobile }) => (
               borderColor: `${colors.textColor}20`,
             }}
           >
-            {item.image ? (
-              <img
-                className={`w-full object-cover bg-center bg-cover rounded-lg ${
-                  isMobile ? "h-[180px]" : "h-[200px] sm:h-[240px] md:h-[270px]"
-                }`}
-                src={item.image}
-                alt={item.title}
-              />
-            ) : (
-              <div
-                className={`w-full rounded-lg border-2 border-dashed flex items-center justify-center ${
-                  isMobile ? "h-[180px]" : "h-[200px] sm:h-[240px] md:h-[270px]"
-                }`}
-                style={{
-                  borderColor: `${colors.textColor}40`,
-                  backgroundColor: `${colors.textColor}10`,
-                }}
-              >
-                <span
-                  style={{ color: `${colors.textColor}60` }}
-                  className="text-sm"
-                >
-                  No image
-                </span>
-              </div>
-            )}
+            <img
+              className={`w-full object-cover bg-center bg-cover rounded-lg ${
+                isMobile ? "h-[180px]" : "h-[200px] sm:h-[240px] md:h-[270px]"
+              }`}
+              src={item.image || "/lock.jpg"}
+              alt={item.title || "Sample image"}
+              onError={(e) => {
+                e.target.src = "/lock.jpg";
+              }}
+            />
             <h1
               className={`px-4 font-semibold ${
                 isMobile
@@ -220,7 +204,13 @@ const ViewModeToggle = ({ viewMode, setViewMode, primaryColor }) => (
 );
 
 // Editor Form Component
-const EditorForm = ({ section1Data, onDataChange, colors, uploading, uploadImage }) => {
+const EditorForm = ({
+  section1Data,
+  onDataChange,
+  colors,
+  uploading,
+  uploadImage,
+}) => {
   const handleWelcomeChange = (field, value) => {
     onDataChange({
       ...section1Data,
@@ -326,13 +316,16 @@ const EditorForm = ({ section1Data, onDataChange, colors, uploading, uploadImage
               />
 
               {/* Image Preview */}
-              {feature.image ? (
-                <div className="relative">
-                  <img
-                    src={feature.image}
-                    alt={`Feature ${idx + 1} preview`}
-                    className="w-full h-32 object-cover rounded border"
-                  />
+              <div className="relative">
+                <img
+                  src={feature.image || "/lock.jpg"}
+                  alt={`Feature ${idx + 1} preview`}
+                  className="w-full h-32 object-cover rounded border"
+                  onError={(e) => {
+                    e.target.src = "/lock.jpg";
+                  }}
+                />
+                {feature.image && (
                   <button
                     onClick={() => handleRemoveImage(idx)}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
@@ -340,14 +333,15 @@ const EditorForm = ({ section1Data, onDataChange, colors, uploading, uploadImage
                   >
                     ×
                   </button>
-                </div>
-              ) : (
-                <div className="w-full h-32 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center">
-                  <span className="text-sm text-gray-400">
-                    {uploading ? "Ачаалж байна..." : "Зураг сонгоно уу"}
-                  </span>
-                </div>
-              )}
+                )}
+                {!feature.image && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      Sample Image
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <input
@@ -397,11 +391,19 @@ const EditorForm = ({ section1Data, onDataChange, colors, uploading, uploadImage
 };
 
 // Color Preview Component
-const ColorPreview = ({ colors }) => (
+const ColorPreview = ({ colors, onRefreshColors }) => (
   <div className="p-4 bg-gray-50 rounded-lg mt-6">
-    <h3 className="text-sm font-medium text-gray-700 mb-3">
-      Одоогийн өнгөний тохиргоо
-    </h3>
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="text-sm font-medium text-gray-700">
+        Одоогийн өнгөний тохиргоо
+      </h3>
+      <button
+        onClick={onRefreshColors}
+        className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+      >
+        Refresh
+      </button>
+    </div>
     <div className="space-y-2 text-xs">
       <div className="flex items-center justify-between">
         <span>Primary:</span>
@@ -457,16 +459,39 @@ const Section1Page = () => {
   // File upload hook
   const { uploadImage, uploading } = useFileUpload();
 
+  // Function to load colors from general-info section
+  const loadGeneralInfoColors = async () => {
+    try {
+      const result = await api.getSubsection("general-info", "main");
+      if (result.success && result.data?.data?.colors) {
+        return result.data.data.colors;
+      }
+    } catch (error) {
+      console.error("Error loading general-info colors:", error);
+    }
+    return null;
+  };
+
   // Data loading from backend
   const loadData = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
+      // Load general-info colors first
+      const generalInfoColors = await loadGeneralInfoColors();
+
       const result = await api.getSubsection("about", "section1");
 
       if (result.success && result.data?.data) {
-        setSection1Data(result.data.data);
+        const sectionData = result.data.data;
+
+        // If section doesn't have colors or if we have fresh general-info colors, use those
+        if (!sectionData.colors || generalInfoColors) {
+          sectionData.colors = generalInfoColors || sectionData.colors;
+        }
+
+        setSection1Data(sectionData);
         toast.success("Section1 мэдээлэл амжилттай ачааллагдлаа!");
       } else {
         setError("No section1 data found in database");
@@ -514,6 +539,23 @@ const Section1Page = () => {
       if (showToast) {
         setIsSaving(false);
       }
+    }
+  };
+
+  // Handle refreshing colors from general-info
+  const handleRefreshColors = async () => {
+    try {
+      const generalInfoColors = await loadGeneralInfoColors();
+      if (generalInfoColors && section1Data) {
+        const updatedData = {
+          ...section1Data,
+          colors: generalInfoColors,
+        };
+        setSection1Data(updatedData);
+        toast.success("Өнгөний тохиргоо шинэчлэгдлээ!");
+      }
+    } catch (error) {
+      toast.error("Өнгө шинэчлэхэд алдаа гарлаа!");
     }
   };
 
@@ -609,7 +651,16 @@ const Section1Page = () => {
             uploadImage={uploadImage}
           />
 
-          <ColorPreview colors={colors} />
+          <ColorPreview colors={colors} onRefreshColors={handleRefreshColors} />
+
+          {/* Manual Refresh Button */}
+          <button
+            onClick={loadData}
+            disabled={isLoading}
+            className="w-full bg-gray-500 text-white py-2 px-4 rounded-md transition-colors font-medium mb-3 disabled:opacity-50 hover:bg-gray-600"
+          >
+            {isLoading ? "Ачаалж байна..." : "Бүх өгөгдөл дахин ачаалах"}
+          </button>
 
           {/* Save Button */}
           <button

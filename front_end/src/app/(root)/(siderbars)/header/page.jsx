@@ -6,23 +6,6 @@ import toast, { Toaster } from "react-hot-toast";
 import { api } from "../../../../services/api";
 import { useFileUpload } from "../../../../hooks/useFileUpload";
 
-// Default configuration
-const DEFAULT_CONFIG = {
-  labels: [
-    "Нүүр хуудас",
-    "Тухай",
-    "Үйлчилгээ",
-    "Холбоо барих",
-    "Блог",
-    "Тусламж",
-  ],
-  image: null,
-  primaryColor: "#3B82F6",
-  accentColor: "#EF4444",
-  backgroundColor: "#FFFFFF",
-  textColor: "#1F2937",
-};
-
 // Loading Component
 const LoadingScreen = ({ message = "Loading..." }) => (
   <div className="w-full h-full flex flex-col lg:flex-row gap-4 md:gap-5 bg-gray-50 p-4 md:p-5">
@@ -280,6 +263,8 @@ const EditorPanel = ({
   config,
   onConfigChange,
   onSave,
+  onRefreshColors,
+  onRefreshAll,
   isLoading,
   isSaving,
   uploading,
@@ -525,7 +510,32 @@ const EditorPanel = ({
             Өнгийг өөрчлөхийн тулд "General Info" хуудас руу очно уу.
           </p>
         </div>
+      </div>{" "}
+    </div>
+
+    {/* Color Actions */}
+    <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+      <h4 className="text-sm font-medium text-gray-700 mb-3">
+        Өнгөний тохиргоо
+      </h4>
+      <div className="space-y-2">
+        <button
+          onClick={onRefreshColors}
+          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg transition-colors font-medium text-sm hover:bg-blue-600"
+        >
+          Өнгө шинэчлэх
+        </button>
+        <button
+          onClick={onRefreshAll}
+          disabled={isLoading}
+          className="w-full bg-gray-500 text-white py-2 px-4 rounded-lg transition-colors font-medium text-sm disabled:opacity-50 hover:bg-gray-600"
+        >
+          {isLoading ? "Ачаалж байна..." : "Бүх өгөгдөл дахин ачаалах"}
+        </button>
       </div>
+      <p className="text-xs text-gray-500 mt-2">
+        Өнгийг өөрчлөхийн тулд "General Info" хуудас руу очно уу.
+      </p>
     </div>
 
     {/* Save Button */}
@@ -585,7 +595,7 @@ const HeaderPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [config, setConfig] = useState(null);
 
   // File upload hook
   const { uploadImage, uploading: fileUploading } = useFileUpload();
@@ -597,14 +607,37 @@ const HeaderPage = () => {
       setIsLoading(true);
       setError(null);
 
-      const result = await api.getSubsection("header", "main");
+      // Load general-info colors first
+      const generalInfoColors = await loadGeneralInfoColors();
+      console.log("General info colors:", generalInfoColors);
 
-      if (result.success && result.data) {
-        const data = result.data.data || DEFAULT_CONFIG;
-        setConfig({ ...DEFAULT_CONFIG, ...data });
+      const result = await api.getSubsection("header", "main");
+      console.log("Header API result:", result);
+
+      if (result.success && result.data && result.data.data) {
+        const data = result.data.data;
+        console.log("Header data from backend:", data);
+
+        // Extract colors from the nested structure or use general-info colors
+        const colorsToUse = generalInfoColors || data.colors;
+        console.log("Colors to use:", colorsToUse);
+
+        if (!colorsToUse) {
+          throw new Error("No colors available from backend");
+        }
+
+        // Merge data with flattened colors
+        const configWithColors = {
+          ...data,
+          ...colorsToUse, // Flatten colors directly into config
+        };
+
+        console.log("Final config:", configWithColors);
+        setConfig(configWithColors);
         toast.success("Header мэдээлэл амжилттай ачааллагдлаа!");
       } else {
-        await saveData(DEFAULT_CONFIG);
+        setError("No header data found in backend");
+        toast.error("Header өгөгдөл олдсонгүй!");
       }
     } catch (error) {
       console.error("Error loading header data:", error);
@@ -613,6 +646,19 @@ const HeaderPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to load colors from general-info section
+  const loadGeneralInfoColors = async () => {
+    try {
+      const result = await api.getSubsection("general-info", "main");
+      if (result.success && result.data?.data?.colors) {
+        return result.data.data.colors;
+      }
+    } catch (error) {
+      console.error("Error loading general-info colors:", error);
+    }
+    return null;
   };
 
   // Save data to backend
@@ -683,8 +729,25 @@ const HeaderPage = () => {
     setIsMobileMenuOpen(false);
   };
 
+  // Handle refreshing colors from general-info
+  const handleRefreshColors = async () => {
+    try {
+      const generalInfoColors = await loadGeneralInfoColors();
+      if (generalInfoColors && config) {
+        const updatedConfig = {
+          ...config,
+          ...generalInfoColors,
+        };
+        setConfig(updatedConfig);
+        toast.success("Өнгөний тохиргоо шинэчлэгдлээ!");
+      }
+    } catch (error) {
+      toast.error("Өнгө шинэчлэхэд алдаа гарлаа!");
+    }
+  };
+
   // Show loading screen
-  if (!isClient || isLoading) {
+  if (!isClient || isLoading || !config) {
     return <LoadingScreen message="Loading header data from backend..." />;
   }
 
@@ -781,6 +844,8 @@ const HeaderPage = () => {
             config={config}
             onConfigChange={setConfig}
             onSave={handleManualSave}
+            onRefreshColors={handleRefreshColors}
+            onRefreshAll={loadData}
             isLoading={isLoading}
             isSaving={isSaving}
             uploading={uploading}

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { api } from "../../../../../../services/api";
+import { useFileUpload } from "../../../../../../hooks/useFileUpload";
 import { TbNotebook } from "react-icons/tb";
 import { AiFillLike } from "react-icons/ai";
 import {
@@ -287,7 +288,13 @@ const ViewModeToggle = ({ viewMode, setViewMode, primaryColor }) => (
 );
 
 // Editor Form Component
-const EditorForm = ({ section2Data, onDataChange, colors }) => {
+const EditorForm = ({
+  section2Data,
+  onDataChange,
+  colors,
+  uploading,
+  uploadImage,
+}) => {
   const iconOptions = [
     { value: "notebook", label: "Notebook" },
     { value: "like", label: "Like" },
@@ -316,6 +323,21 @@ const EditorForm = ({ section2Data, onDataChange, colors }) => {
         i === index ? { ...item, [field]: value } : item
       ),
     });
+  };
+
+  const handleBackgroundImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const uploadedFile = await uploadImage(file, {
+        onSuccess: (fileData) => {
+          handleTitleChange("backgroundImage", fileData.url);
+        },
+      });
+    }
+  };
+
+  const handleRemoveBackgroundImage = () => {
+    handleTitleChange("backgroundImage", "");
   };
 
   const addNewProject = () => {
@@ -367,13 +389,45 @@ const EditorForm = ({ section2Data, onDataChange, colors }) => {
           rows="3"
           placeholder="Section description"
         />
-        <input
-          type="text"
-          value={section2Data?.backgroundImage || ""}
-          onChange={(e) => handleTitleChange("backgroundImage", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Background image URL"
-        />
+
+        {/* Background Image Upload Section */}
+        <div className="space-y-2">
+          <label className="text-xs text-gray-500">
+            Upload Background Image
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleBackgroundImageUpload}
+            disabled={uploading}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+          />
+
+          {/* Background Image Preview */}
+          {section2Data?.backgroundImage &&
+          section2Data.backgroundImage.trim() !== "" ? (
+            <div className="relative">
+              <img
+                src={section2Data.backgroundImage}
+                alt="Background Preview"
+                className="w-full h-32 object-cover rounded border"
+              />
+              <button
+                onClick={handleRemoveBackgroundImage}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                title="Зураг устгах"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <div className="w-full h-32 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center">
+              <span className="text-sm text-gray-400">
+                {uploading ? "Ачаалж байна..." : "Зураг сонгоно уу"}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Technologies Section */}
@@ -513,6 +567,9 @@ const Section2Page = () => {
   const [error, setError] = useState(null);
   const [section2Data, setSection2Data] = useState(null);
   const router = useRouter();
+
+  // File upload hook
+  const { uploadImage, uploading } = useFileUpload();
 
   // Create section2 data with defaults
   const createSection2Data = async () => {
@@ -706,6 +763,8 @@ const Section2Page = () => {
             section2Data={section2Data}
             onDataChange={handleDataChange}
             colors={colors}
+            uploading={uploading}
+            uploadImage={uploadImage}
           />
 
           <ColorPreview colors={colors} />

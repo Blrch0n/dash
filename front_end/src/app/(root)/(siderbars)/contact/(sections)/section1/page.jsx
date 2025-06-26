@@ -7,41 +7,6 @@ import { MdOutlinePhoneIphone } from "react-icons/md";
 import { IoMailOpen } from "react-icons/io5";
 import { MdContactMail } from "react-icons/md";
 
-// Default section1 data structure
-const defaultSection1Data = {
-  contacts: [
-    {
-      id: 1,
-      icon: "phone",
-      title: "Phone",
-      description: "+1 234 567 890",
-    },
-    {
-      id: 2,
-      icon: "email",
-      title: "Email",
-      description: "contact@example.com",
-    },
-    {
-      id: 3,
-      icon: "address",
-      title: "Address",
-      description: "123 Main Street, City, Country",
-    },
-  ],
-  colors: {
-    primaryColor: "#3B82F6",
-    secondaryColor: "#1E40AF",
-    accentColor: "#EF4444",
-    backgroundColor: "#FFFFFF",
-    textColor: "#1F2937",
-    scrolledBgColor: "#FFFFFF",
-    scrolledTextColor: "#1F2937",
-    hoverColor: "#3B82F6",
-    borderColor: "#E5E7EB",
-  },
-};
-
 // Icon component
 const getIcon = (iconType) => {
   switch (iconType) {
@@ -354,25 +319,56 @@ const Section1Page = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [section1Data, setSection1Data] = useState(null);
+  const [colors, setColors] = useState({
+    primaryColor: "#3b82f6",
+    secondaryColor: "#1e40af",
+    textColor: "#1f2937",
+    backgroundColor: "#ffffff",
+    borderColor: "#e5e7eb",
+  });
+  const [isLoadingColors, setIsLoadingColors] = useState(false);
   const router = useRouter();
 
-  // Create section1 data with defaults
+  // Create section1 data with basic structure
   const createSection1Data = async () => {
     try {
       setIsLoading(true);
       setError(null);
       toast.loading("Creating section1 data...", { id: "creating" });
 
+      const basicSection1Data = {
+        contacts: [
+          {
+            id: 1,
+            icon: "phone",
+            title: "Phone",
+            description: "+976 1234 5678",
+          },
+          {
+            id: 2,
+            icon: "email",
+            title: "Email",
+            description: "info@example.com",
+          },
+          {
+            id: 3,
+            icon: "address",
+            title: "Address",
+            description: "Ulaanbaatar, Mongolia",
+          },
+        ],
+      };
+
       const result = await api.saveSection({
         sectionName: "contact",
         subsectionName: "section1",
         title: "Contact Information",
         content: "Contact section 1 content",
-        data: defaultSection1Data,
+        data: basicSection1Data,
       });
 
       if (result.success) {
-        setSection1Data(defaultSection1Data);
+        setSection1Data(basicSection1Data);
         toast.success("Section1 data created successfully!", {
           id: "creating",
         });
@@ -413,6 +409,42 @@ const Section1Page = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Load colors from general-info section
+  const loadColors = async () => {
+    try {
+      setIsLoadingColors(true);
+      console.log("🎨 Loading colors from general-info...");
+
+      const result = await api.getSubsection("general-info", "main");
+      console.log("🎨 General-info result:", result);
+
+      if (result.success && result.data?.data?.colors) {
+        const generalColors = result.data.data.colors;
+        setColors({
+          primaryColor: generalColors.primaryColor || "#3b82f6",
+          secondaryColor: generalColors.secondaryColor || "#1e40af",
+          textColor: generalColors.textColor || "#1f2937",
+          backgroundColor: generalColors.backgroundColor || "#ffffff",
+          borderColor: generalColors.borderColor || "#e5e7eb",
+        });
+        console.log("✅ Colors loaded successfully:", generalColors);
+      } else {
+        console.log("⚠️ No colors found in general-info, using defaults");
+      }
+    } catch (error) {
+      console.error("❌ Error loading colors:", error);
+    } finally {
+      setIsLoadingColors(false);
+    }
+  };
+
+  // Refresh colors manually
+  const refreshColors = async () => {
+    toast.loading("Refreshing colors...", { id: "refresh-colors" });
+    await loadColors();
+    toast.success("Colors refreshed!", { id: "refresh-colors" });
   };
 
   // Data saving to backend
@@ -466,6 +498,7 @@ const Section1Page = () => {
   useEffect(() => {
     setIsClient(true);
     loadData();
+    loadColors();
   }, []);
 
   useEffect(() => {
@@ -495,8 +528,6 @@ const Section1Page = () => {
     );
   }
 
-  const colors = section1Data?.colors || defaultSection1Data.colors;
-
   return (
     <>
       <ToastContainer />
@@ -519,56 +550,86 @@ const Section1Page = () => {
                 transform: viewMode === "mobile" ? "scale(0.95)" : "scale(1)",
               }}
             >
-              <PreviewComponent
-                section1Data={section1Data || defaultSection1Data}
-                colors={colors}
-                isMobile={viewMode === "mobile"}
-              />
+              {section1Data ? (
+                <PreviewComponent
+                  section1Data={section1Data}
+                  colors={colors}
+                  isMobile={viewMode === "mobile"}
+                />
+              ) : (
+                <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <p>No contact section1 data to preview</p>
+                    <p className="text-sm mt-2">Create data to see preview</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Editor Section */}
         <div className="h-full w-[30%] bg-white rounded-lg p-4 overflow-auto">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">
-            Section 1 засварлах
-          </h2>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contact Information
-            </label>
-            <p className="text-xs text-gray-500">
-              Section 1 нь Contact хэсэг бөгөөд таны холбоо барих мэдээллийг
-              харуулна.
-            </p>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-800">
+              Section 1 засварлах
+            </h2>
+            <button
+              onClick={refreshColors}
+              disabled={isLoadingColors}
+              className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              title="Refresh colors from general-info"
+            >
+              {isLoadingColors ? "⟳" : "🎨"}
+            </button>
           </div>
 
-          <EditorForm
-            section1Data={section1Data}
-            onDataChange={handleDataChange}
-            colors={colors}
-          />
+          {section1Data ? (
+            <>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Information
+                </label>
+                <p className="text-xs text-gray-500">
+                  Section 1 нь Contact хэсэг бөгөөд таны холбоо барих мэдээллийг
+                  харуулна.
+                </p>
+              </div>
 
-          <ColorPreview colors={colors} />
+              <EditorForm
+                section1Data={section1Data}
+                onDataChange={handleDataChange}
+                colors={colors}
+              />
 
-          {/* Save Button */}
-          <button
-            onClick={handleManualSave}
-            disabled={isLoading || isSaving}
-            className="w-full text-white py-3 px-4 rounded-md transition-colors font-medium mt-6 disabled:opacity-50"
-            style={{ backgroundColor: colors.primaryColor }}
-            onMouseEnter={(e) =>
-              (e.target.style.backgroundColor = colors.secondaryColor)
-            }
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = colors.primaryColor)
-            }
-          >
-            {isSaving ? "Хадгалж байна..." : "Хадгалах"}
-          </button>
+              <ColorPreview colors={colors} />
 
-          <StorageInfo isSaving={isSaving} />
+              {/* Save Button */}
+              <button
+                onClick={handleManualSave}
+                disabled={isLoading || isSaving}
+                className="w-full text-white py-3 px-4 rounded-md transition-colors font-medium mt-6 disabled:opacity-50"
+                style={{ backgroundColor: colors.primaryColor }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = colors.secondaryColor)
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = colors.primaryColor)
+                }
+              >
+                {isSaving ? "Хадгалж байна..." : "Хадгалах"}
+              </button>
+
+              <StorageInfo isSaving={isSaving} />
+            </>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              <p>No section1 data available.</p>
+              <p className="text-sm mt-2">
+                Create data using the button above.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </>

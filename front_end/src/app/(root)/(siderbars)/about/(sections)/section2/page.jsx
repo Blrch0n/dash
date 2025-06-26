@@ -4,30 +4,6 @@ import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { api } from "../../../../../../services/api";
 
-// Default section2 data structure
-const defaultSection2Data = {
-  creativeSpirit: {
-    title: "Creative Spirit",
-    content:
-      "The pieces we make are the free thoughts that come with daily work given a physical form",
-  },
-  actionButton: {
-    text: "See all Features",
-    link: "/",
-  },
-  colors: {
-    primaryColor: "#3B82F6",
-    secondaryColor: "#1E40AF",
-    accentColor: "#EF4444",
-    backgroundColor: "#FFFFFF",
-    textColor: "#1F2937",
-    scrolledBgColor: "#FFFFFF",
-    scrolledTextColor: "#1F2937",
-    hoverColor: "#3B82F6",
-    borderColor: "#E5E7EB",
-  },
-};
-
 // Toast Container Component
 const ToastContainer = () => (
   <Toaster
