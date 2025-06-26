@@ -96,10 +96,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parsing middleware
-app.use(bodyParser.json({ limit: "100mb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
+// Optimized body parsing middleware
+app.use(bodyParser.json({ limit: "50mb" })); // Reduced since we're using chunking
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
+
+// Add compression middleware for better performance
+const compression = require("compression");
+app.use(compression());
 
 // Connect to MongoDB
 mongoose
@@ -127,8 +131,10 @@ app.use(
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/sections", require("./routes/sections"));
 app.use("/api/upload", require("./routes/upload"));
+app.use("/api/upload-chunked", require("./routes/chunkedUpload"));
 app.use("/api/files", require("./routes/files"));
 app.use("/api/storage", require("./routes/storage"));
+app.use("/api/performance", require("./routes/performance"));
 
 // Health check route
 app.get("/api/health", (req, res) => {

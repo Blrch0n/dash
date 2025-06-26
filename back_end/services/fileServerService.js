@@ -1,10 +1,12 @@
-const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
+const performanceMonitor = require("../utils/performanceMonitor");
 
 class FileServerService {
   constructor() {
     this.fileServerBase = process.env.FILE_SERVER_BASE;
+    this.uploadStats = new Map(); // Track upload times
     if (!this.fileServerBase) {
       console.warn(
         "FILE_SERVER_BASE environment variable not set. File server features disabled."
@@ -219,12 +221,15 @@ class FileServerService {
   }
 
   /**
-   * Upload a file to the NGINX file server
+   * Upload a file to the NGINX file server with performance monitoring
    * @param {Object} file - Multer file object
    * @param {string} customFilename - Optional custom filename
-   */ async uploadFile(file, customFilename = null) {
+   */
+  async uploadFile(file, customFilename = null) {
+    const uploadStartTime = Date.now();
+
     // Force log to check if new code is loaded
-    console.log("UNICODE FIX LOADED:", new Date().toISOString());
+    console.log("ENHANCED UPLOAD STARTED:", new Date().toISOString());
 
     if (!this.isConfigured()) {
       throw new Error("File server not configured");
@@ -236,50 +241,75 @@ class FileServerService {
       const localPath = file.path;
 
       console.log(
-        `🔧 UNICODE FIX - Original: ${originalFilename} -> Sanitized: ${filename}, Size: ${file.size} bytes`
+        `🚀 Enhanced Upload - Original: ${originalFilename} -> Sanitized: ${filename}, Size: ${file.size} bytes`
       );
 
-      // Read the file into a buffer
+      // Read the file into a buffer with performance tracking
+      const fileReadStart = Date.now();
       const fileBuffer = fs.readFileSync(localPath);
+      const fileReadTime = Date.now() - fileReadStart;
+
       console.log(
-        `File read into buffer, buffer size: ${fileBuffer.length} bytes`
+        `File read time: ${fileReadTime}ms, Buffer size: ${fileBuffer.length} bytes`
       );
 
-      // Calculate timeout based on file size (minimum 60s, +30s per 10MB)
+      // Calculate optimal timeout based on file size and estimated speed
       const fileSizeMB = file.size / (1024 * 1024);
-      const uploadTimeout = Math.max(
-        60000,
-        60000 + Math.ceil(fileSizeMB / 10) * 30000
-      );
+      const baseTimeout = 60000; // 1 minute base
+      const sizeBasedTimeout = Math.ceil(fileSizeMB / 5) * 30000; // 30s per 5MB
+      const uploadTimeout = Math.max(baseTimeout, sizeBasedTimeout);
+
       console.log(
         `Upload timeout set to: ${uploadTimeout}ms for ${fileSizeMB.toFixed(
           2
         )}MB file`
       );
 
-      // Upload to NGINX WebDAV endpoint
+      // Upload to NGINX WebDAV endpoint with progress tracking
       const url = `${this.fileServerBase}/uploads/${encodeURIComponent(
         filename
       )}`;
       console.log(`Uploading file to: ${url}`);
 
+      const uploadNetworkStart = Date.now();
+
       await axios.put(url, fileBuffer, {
         headers: {
           "Content-Type": file.mimetype || "application/octet-stream",
           "Content-Length": fileBuffer.length,
+          // Add performance headers
+          "X-Upload-Size": fileBuffer.length,
+          "X-Upload-Type": "enhanced",
         },
         timeout: uploadTimeout,
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
+        // Enhanced progress tracking
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
           );
-          console.log(`Upload progress: ${percentCompleted}%`);
+          const currentTime = Date.now();
+          const elapsedTime = currentTime - uploadNetworkStart;
+          const speed = progressEvent.loaded / (elapsedTime / 1000); // bytes per second
+
+          console.log(
+            `Upload progress: ${percentCompleted}% (${this.formatSpeed(speed)})`
+          );
         },
+        // Optimize axios for large files
+        validateStatus: (status) => status >= 200 && status < 300,
       });
 
-      console.log(`File uploaded successfully: ${filename}`);
+      const uploadNetworkTime = Date.now() - uploadNetworkStart;
+      const totalUploadTime = Date.now() - uploadStartTime;
+
+      console.log(`✅ File uploaded successfully: ${filename}`);
+      console.log(`   Network upload time: ${uploadNetworkTime}ms`);
+      console.log(`   Total upload time: ${totalUploadTime}ms`);
+
+      // Record performance metrics
+      performanceMonitor.recordUpload(filename, file.size, totalUploadTime);
 
       // Clean up temporary file
       if (fs.existsSync(localPath)) {
@@ -294,13 +324,23 @@ class FileServerService {
         mimetype: file.mimetype,
         url: `${this.fileServerBase}/files/${encodeURIComponent(filename)}`,
         serverUrl: url,
+        uploadTime: totalUploadTime,
+        networkTime: uploadNetworkTime,
+        performance: {
+          fileReadTime,
+          networkTime: uploadNetworkTime,
+          totalTime: totalUploadTime,
+          averageSpeed: file.size / (totalUploadTime / 1000), // bytes per second
+        },
       };
     } catch (error) {
+      const totalTime = Date.now() - uploadStartTime;
       console.error("File upload error details:", {
         message: error.message,
         code: error.code,
         response: error.response?.status,
         responseData: error.response?.data,
+        uploadTime: totalTime,
       });
 
       // Clean up temporary file on error
@@ -312,22 +352,34 @@ class FileServerService {
           console.error("Error cleaning up temp file:", cleanupError.message);
         }
       }
+
+      // Enhanced error messages
       if (error.response?.status === 507) {
         throw new Error("File server storage is full");
       } else if (error.response?.status === 413) {
         throw new Error(
-          "File too large for NGINX server - check client_max_body_size configuration"
+          "File too large for NGINX server - consider using chunked upload"
         );
       } else if (error.code === "ECONNREFUSED") {
         throw new Error("File server is not accessible");
       } else if (error.code === "ECONNRESET" || error.code === "ETIMEDOUT") {
         throw new Error(
-          "Upload timeout - file may be too large or connection unstable"
+          `Upload timeout after ${totalTime}ms - consider using chunked upload for large files`
         );
       } else {
         throw new Error(`Failed to upload file to server: ${error.message}`);
       }
     }
+  }
+
+  formatSpeed(bytesPerSecond) {
+    if (bytesPerSecond === 0) return "0 B/s";
+    const k = 1024;
+    const sizes = ["B/s", "KB/s", "MB/s", "GB/s"];
+    const i = Math.floor(Math.log(bytesPerSecond) / Math.log(k));
+    return (
+      parseFloat((bytesPerSecond / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+    );
   }
 
   /**
