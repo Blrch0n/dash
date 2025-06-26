@@ -4,20 +4,39 @@ const multer = require("multer");
 const fileServerService = require("../services/fileServerService");
 const { authenticateToken } = require("../middleware/auth/tokenAuth");
 
-// Configure multer for temporary file storage
+// Configure multer for temporary file storage with Unicode support
 const upload = multer({
   dest: "tmp/",
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100MB limit for videos/audio
+    fileSize: 999 * 1024 * 1024, // 999MB limit to match nginx
     files: 10, // Maximum 10 files
   },
   fileFilter: (req, file, cb) => {
-    // Allow all file types but log them
-    console.log(
-      `Uploading file: ${file.originalname}, Type: ${file.mimetype}, Size: ${
-        file.size || "unknown"
-      }`
-    );
+    // Fix Unicode encoding in filename
+    try {
+      // Decode the filename properly from buffer if needed
+      const originalBuffer = Buffer.from(file.originalname, 'latin1');
+      const decodedName = originalBuffer.toString('utf8');
+      
+      // If the decoded version looks better (no weird characters), use it
+      if (decodedName && !decodedName.includes('�')) {
+        file.originalname = decodedName;
+      }
+      
+      console.log(
+        `📁 Fixed filename: ${file.originalname}, Type: ${file.mimetype}, Size: ${
+          file.size || "unknown"
+        }`
+      );
+    } catch (error) {
+      console.log(`⚠️ Filename encoding fix failed: ${error.message}`);
+      console.log(
+        `📁 Original filename: ${file.originalname}, Type: ${file.mimetype}, Size: ${
+          file.size || "unknown"
+        }`
+      );
+    }
+    
     cb(null, true);
   },
 });
@@ -314,13 +333,73 @@ router.get("/url/:filename", (req, res) => {
   }
 });
 
+/**
+ * @route GET /api/files/stream/:filename
+ * @desc Stream video/audio files with proper CORS headers
+ * @access Public
+ */
+router.get(
+  "/stream/:filename",
+  (req, res, next) => {
+    // Set CORS headers for streaming
+    res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+    res.header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Range, Content-Type");
+    res.header(
+      "Access-Control-Expose-Headers",
+      "Accept-Ranges, Content-Range, Content-Length, Content-Type"
+    );
+    res.header("Cross-Origin-Resource-Policy", "cross-origin");
+
+    next();
+  },
+  async (req, res) => {
+    try {
+      const { filename } = req.params;
+      console.log(`Streaming request for: "${filename}"`);
+
+      if (!filename) {
+        return res.status(400).json({
+          success: false,
+          message: "Filename is required",
+        });
+      }
+
+      await fileServerService.downloadFile(filename, res);
+    } catch (error) {
+      console.error("Streaming error:", error.message);
+
+      if (error.message === "File not found") {
+        return res.status(404).json({
+          success: false,
+          message: "File not found",
+        });
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to stream file",
+        });
+      }
+    }
+  }
+);
+
+// Handle OPTIONS requests for CORS preflight
+router.options("/stream/:filename", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Range, Content-Type");
+  res.header("Access-Control-Max-Age", "86400");
+  res.status(204).send();
+});
+
 // Handle multer errors
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
-        message: "File too large. Maximum size is 50MB.",
+        message: "File too large. Maximum size is 999MB.",
       });
     }
     if (err.code === "LIMIT_FILE_COUNT") {

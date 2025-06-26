@@ -49,7 +49,7 @@ export default function FileServerDemo() {
                 onFileUploaded={handleFileUploaded}
                 multiple={false}
                 accept="*/*"
-                maxFileSize={100 * 1024 * 1024} // 100MB
+                maxFileSize={999 * 1024 * 1024} // 999MB
               />
             </div>
 
@@ -60,7 +60,7 @@ export default function FileServerDemo() {
                 multiple={true}
                 accept="*/*"
                 maxFiles={5}
-                maxFileSize={100 * 1024 * 1024} // 100MB
+                maxFileSize={999 * 1024 * 1024} // 999MB
               />
             </div>
           </div>

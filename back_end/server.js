@@ -98,6 +98,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/sections", require("./routes/sections"));
 app.use("/api/upload", require("./routes/upload"));
 app.use("/api/files", require("./routes/files"));
+app.use("/api/storage", require("./routes/storage"));
 
 // Health check route
 app.get("/api/health", (req, res) => {
@@ -128,6 +129,20 @@ app.get("/", (req, res) => {
       "POST /api/files/upload/multiple",
       "DELETE /api/files/:filename",
       "GET /api/files/url/:filename",
+      "GET /api/storage/stats",
+      "GET /api/storage/files",
+      "GET /api/storage/search",
+      "GET /api/storage/server/files",
+      "GET /api/storage/files/:filename",
+      "GET /api/storage/files/:filename/download",
+      "GET /api/storage/files/:filename/verify",
+      "POST /api/storage/download",
+      "POST /api/storage/download/batch",
+      "POST /api/storage/sync",
+      "DELETE /api/storage/files/:filename",
+      "DELETE /api/storage/clear",
+      "GET /api/storage/migration/status",
+      "POST /api/storage/migration/migrate",
     ],
   });
 });

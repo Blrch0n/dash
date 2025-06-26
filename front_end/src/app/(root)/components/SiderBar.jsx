@@ -87,6 +87,12 @@ const sideBarMenu = [
     link: "/file-server",
     subMenu: [],
   },
+  {
+    title: "File Storage",
+    icon: <MdOutlineCloudUpload />,
+    link: "/file-storage",
+    subMenu: [],
+  },
 ];
 
 const SiderBar = ({ isOpen, onToggle }) => {
