@@ -1,3 +1,5 @@
+const { getStandardColors } = require("./colorUtils");
+
 const newsSections = [
   {
     sectionName: "news",
@@ -90,17 +92,7 @@ const newsSections = [
             "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400&h=300&fit=crop",
         },
       ],
-      colors: {
-        primaryColor: "#3B82F6",
-        secondaryColor: "#1E40AF",
-        accentColor: "#EF4444",
-        backgroundColor: "#FFFFFF",
-        textColor: "#1F2937",
-        scrolledBgColor: "#FFFFFF",
-        scrolledTextColor: "#1F2937",
-        hoverColor: "#3B82F6",
-        borderColor: "#E5E7EB",
-      },
+      colors: getStandardColors(),
     },
     order: 2,
   },
@@ -120,17 +112,7 @@ const newsSections = [
         "https://max-themes.net/demos/enside/main/upload/logo-b-7.png",
         "https://max-themes.net/demos/enside/main/upload/logo-b-8.png",
       ],
-      colors: {
-        primaryColor: "#3B82F6",
-        secondaryColor: "#1E40AF",
-        accentColor: "#EF4444",
-        backgroundColor: "#FFFFFF",
-        textColor: "#1F2937",
-        scrolledBgColor: "#FFFFFF",
-        scrolledTextColor: "#1F2937",
-        hoverColor: "#3B82F6",
-        borderColor: "#E5E7EB",
-      },
+      colors: getStandardColors(),
     },
     order: 3,
   },

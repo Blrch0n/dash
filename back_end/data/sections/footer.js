@@ -1,3 +1,5 @@
+const { getStandardColors } = require("./colorUtils");
+
 const footerSections = [
   {
     sectionName: "footer",
@@ -41,14 +43,7 @@ const footerSections = [
         email: "test@gmail.com",
       },
       copyright: "Powered by Enside - Premium HTML Template",
-      colors: {
-        primaryColor: "#3B82F6",
-        secondaryColor: "#1E40AF",
-        accentColor: "#EF4444",
-        backgroundColor: "#FFFFFF",
-        textColor: "#1F2937",
-        borderColor: "#E5E7EB",
-      },
+      colors: getStandardColors(),
     },
     order: 1,
   },

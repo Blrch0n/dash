@@ -10,6 +10,7 @@ const {
   updateSectionById,
   deleteSectionById,
   bulkUpdateSections,
+  applyGlobalColors,
 } = require("../controllers/sectionController");
 
 // Import middleware
@@ -77,6 +78,9 @@ router.delete("/:id", authenticateToken, deleteSectionById);
 
 // Bulk create/update sections (useful for frontend data sync)
 router.post("/bulk", authenticateToken, bulkUpdateSections);
+
+// Apply global colors to all sections
+router.post("/apply-global-colors", authenticateToken, applyGlobalColors);
 
 // Error handling middleware for multer
 router.use(handleMulterError);

@@ -1,3 +1,5 @@
+const { getStandardColors } = require("./colorUtils");
+
 const servicesSections = [
   {
     sectionName: "services",
@@ -167,17 +169,7 @@ const servicesSections = [
           },
         },
       },
-      colors: {
-        primaryColor: "#3B82F6",
-        secondaryColor: "#1E40AF",
-        accentColor: "#EF4444",
-        backgroundColor: "#FFFFFF",
-        textColor: "#1F2937",
-        scrolledBgColor: "#FFFFFF",
-        scrolledTextColor: "#1F2937",
-        hoverColor: "#3B82F6",
-        borderColor: "#E5E7EB",
-      },
+      colors: getStandardColors(),
     },
     order: 2,
   },
@@ -209,17 +201,7 @@ const servicesSections = [
             "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=600&h=400&fit=crop",
         },
       ],
-      colors: {
-        primaryColor: "#3B82F6",
-        secondaryColor: "#1E40AF",
-        accentColor: "#EF4444",
-        backgroundColor: "#FFFFFF",
-        textColor: "#1F2937",
-        scrolledBgColor: "#FFFFFF",
-        scrolledTextColor: "#1F2937",
-        hoverColor: "#3B82F6",
-        borderColor: "#E5E7EB",
-      },
+      colors: getStandardColors(),
     },
     order: 3,
   },

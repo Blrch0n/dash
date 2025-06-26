@@ -4,7 +4,7 @@ const { cleanupFiles } = require("../middleware/imageProcessor");
 // @desc    Get all sections
 const getAllSections = async (req, res) => {
   try {
-    const sections = await SectionService.getAllSections();
+    const sections = await SectionService.getAllSectionsWithGlobalColors();
     res.json({
       success: true,
       data: sections,
@@ -76,7 +76,7 @@ const getSubsection = async (req, res) => {
 // @desc    Create or update a section
 const createOrUpdateSection = async (req, res) => {
   try {
-    const { sectionName } = req.body;
+    const { sectionName, subsectionName } = req.body;
 
     // Validate required fields
     if (!sectionName) {
@@ -93,6 +93,48 @@ const createOrUpdateSection = async (req, res) => {
     const { section, isNew } = await SectionService.findOrCreateSection(
       req.body
     );
+
+    // If the section is general-info, apply colors to all other sections
+    if (
+      sectionName === "general-info" &&
+      (subsectionName === "main" || !subsectionName)
+    ) {
+      try {
+        // Extract the new colors from the updated general-info section
+        const newColors = {};
+        if (req.body.data) {
+          if (req.body.data.primaryColor)
+            newColors.primaryColor = req.body.data.primaryColor;
+          if (req.body.data.secondaryColor)
+            newColors.secondaryColor = req.body.data.secondaryColor;
+          if (req.body.data.accentColor)
+            newColors.accentColor = req.body.data.accentColor;
+          if (req.body.data.backgroundColor)
+            newColors.backgroundColor = req.body.data.backgroundColor;
+          if (req.body.data.textColor)
+            newColors.textColor = req.body.data.textColor;
+          if (req.body.data.scrolledBgColor)
+            newColors.scrolledBgColor = req.body.data.scrolledBgColor;
+          if (req.body.data.scrolledTextColor)
+            newColors.scrolledTextColor = req.body.data.scrolledTextColor;
+          if (req.body.data.hoverColor)
+            newColors.hoverColor = req.body.data.hoverColor;
+          if (req.body.data.borderColor)
+            newColors.borderColor = req.body.data.borderColor;
+        }
+
+        if (Object.keys(newColors).length > 0) {
+          const updatedCount =
+            await SectionService.updateAllSectionsWithGlobalColors(newColors);
+          console.log(
+            `Applied global colors to ${updatedCount} sections after general-info update`
+          );
+        }
+      } catch (error) {
+        console.error("Error applying global colors:", error);
+        // Don't fail the main request if color update fails
+      }
+    }
 
     res.status(isNew ? 201 : 200).json({
       success: true,
@@ -137,6 +179,48 @@ const updateSectionById = async (req, res) => {
         success: false,
         message: "Section not found",
       });
+    }
+
+    // If the updated section is general-info, apply colors to all other sections
+    if (
+      section.sectionName === "general-info" &&
+      section.subsectionName === "main"
+    ) {
+      try {
+        // Extract the new colors from the updated section
+        const newColors = {};
+        if (req.body.data) {
+          if (req.body.data.primaryColor)
+            newColors.primaryColor = req.body.data.primaryColor;
+          if (req.body.data.secondaryColor)
+            newColors.secondaryColor = req.body.data.secondaryColor;
+          if (req.body.data.accentColor)
+            newColors.accentColor = req.body.data.accentColor;
+          if (req.body.data.backgroundColor)
+            newColors.backgroundColor = req.body.data.backgroundColor;
+          if (req.body.data.textColor)
+            newColors.textColor = req.body.data.textColor;
+          if (req.body.data.scrolledBgColor)
+            newColors.scrolledBgColor = req.body.data.scrolledBgColor;
+          if (req.body.data.scrolledTextColor)
+            newColors.scrolledTextColor = req.body.data.scrolledTextColor;
+          if (req.body.data.hoverColor)
+            newColors.hoverColor = req.body.data.hoverColor;
+          if (req.body.data.borderColor)
+            newColors.borderColor = req.body.data.borderColor;
+        }
+
+        if (Object.keys(newColors).length > 0) {
+          const updatedCount =
+            await SectionService.updateAllSectionsWithGlobalColors(newColors);
+          console.log(
+            `Applied global colors to ${updatedCount} sections after general-info update by ID`
+          );
+        }
+      } catch (error) {
+        console.error("Error applying global colors:", error);
+        // Don't fail the main request if color update fails
+      }
     }
 
     res.json({
@@ -213,6 +297,28 @@ const bulkUpdateSections = async (req, res) => {
   }
 };
 
+// @desc    Apply global colors to all sections
+const applyGlobalColors = async (req, res) => {
+  try {
+    const globalColors = await SectionService.getGlobalColors();
+    const updatedCount = await SectionService.updateAllSectionsWithGlobalColors(
+      globalColors
+    );
+
+    res.json({
+      success: true,
+      message: `Applied global colors to ${updatedCount} sections`,
+      updatedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error applying global colors",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllSections,
   getSectionsByName,
@@ -221,4 +327,5 @@ module.exports = {
   updateSectionById,
   deleteSectionById,
   bulkUpdateSections,
+  applyGlobalColors,
 };
