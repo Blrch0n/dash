@@ -38,12 +38,18 @@ const corsOptions = {
 
     // Allow any localhost or local network origins
     if (
-      origin.includes("localhost") ||
-      origin.includes("127.0.0.1") ||
-      origin.match(/192\.168\.\d+\.\d+/) ||
-      origin.match(/10\.\d+\.\d+\.\d+/) ||
-      origin.match(/172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+/)
+      origin &&
+      (origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.match(/192\.168\.\d+\.\d+/) ||
+        origin.match(/10\.\d+\.\d+\.\d+/) ||
+        origin.match(/172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+/))
     ) {
+      return callback(null, true);
+    }
+
+    // Allow Render.com domains
+    if (origin && origin.includes(".onrender.com")) {
       return callback(null, true);
     }
 
@@ -57,14 +63,38 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // For production, be more permissive with Render deployments
+    if (process.env.NODE_ENV === "production") {
+      console.log(`CORS: Allowing origin ${origin}`);
+      return callback(null, true);
+    }
+
     callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+    "Cache-Control",
+    "X-File-Name",
+  ],
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 };
 
 app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options("*", cors(corsOptions));
+
+// Add logging for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.get("Origin")}`);
+  next();
+});
 
 // Body parsing middleware
 app.use(bodyParser.json({ limit: "100mb" }));
