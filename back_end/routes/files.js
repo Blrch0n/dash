@@ -15,28 +15,28 @@ const upload = multer({
     // Fix Unicode encoding in filename
     try {
       // Decode the filename properly from buffer if needed
-      const originalBuffer = Buffer.from(file.originalname, 'latin1');
-      const decodedName = originalBuffer.toString('utf8');
-      
+      const originalBuffer = Buffer.from(file.originalname, "latin1");
+      const decodedName = originalBuffer.toString("utf8");
+
       // If the decoded version looks better (no weird characters), use it
-      if (decodedName && !decodedName.includes('�')) {
+      if (decodedName && !decodedName.includes("�")) {
         file.originalname = decodedName;
       }
-      
+
       console.log(
-        `📁 Fixed filename: ${file.originalname}, Type: ${file.mimetype}, Size: ${
-          file.size || "unknown"
-        }`
+        `📁 Fixed filename: ${file.originalname}, Type: ${
+          file.mimetype
+        }, Size: ${file.size || "unknown"}`
       );
     } catch (error) {
       console.log(`⚠️ Filename encoding fix failed: ${error.message}`);
       console.log(
-        `📁 Original filename: ${file.originalname}, Type: ${file.mimetype}, Size: ${
-          file.size || "unknown"
-        }`
+        `📁 Original filename: ${file.originalname}, Type: ${
+          file.mimetype
+        }, Size: ${file.size || "unknown"}`
       );
     }
-    
+
     cb(null, true);
   },
 });

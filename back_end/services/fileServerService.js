@@ -225,7 +225,7 @@ class FileServerService {
    */ async uploadFile(file, customFilename = null) {
     // Force log to check if new code is loaded
     console.log("UNICODE FIX LOADED:", new Date().toISOString());
-    
+
     if (!this.isConfigured()) {
       throw new Error("File server not configured");
     }
