@@ -96,9 +96,13 @@ const deleteFile = (filePath) => {
 
 // Helper function to get file URL
 const getFileUrl = (filename) => {
-  // Get the backend URL from environment or default to localhost
+  // Get the backend URL from environment variable
+  // In production, make sure to set BACKEND_URL to your deployed backend domain
   const backendUrl =
-    process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
+    process.env.BACKEND_URL || process.env.NODE_ENV === "production"
+      ? "https://dash-1-iefb.onrender.com" // Your actual deployed domain
+      : `http://localhost:${process.env.PORT || 5000}`;
+
   return `${backendUrl}/api/uploads/images/${filename}`;
 };
 

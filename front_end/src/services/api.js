@@ -2,7 +2,7 @@ import axios from "axios";
 
 // API service for connecting to MongoDB Atlas backend
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://192.168.0.16:5000/api";
+  process.env.NEXT_PUBLIC_API_URL || "https://dash-1-iefb.onrender.com/api";
 
 // Safe localStorage wrapper for SSR compatibility
 const safeLocalStorage = {
@@ -630,6 +630,25 @@ export const api = {
     getDirectDownloadUrl(filename) {
       return `${API_BASE_URL}/files/${encodeURIComponent(filename)}`;
     },
+
+    // Helper function to construct image URLs for legacy uploads
+    getImageUrl(filename) {
+      // Handle both absolute URLs (legacy) and relative filenames
+      if (filename.startsWith("http")) {
+        // If it's already an absolute URL, check if it's localhost and replace if needed
+        if (
+          filename.includes("localhost") &&
+          process.env.NODE_ENV === "production"
+        ) {
+          // Extract just the filename from the URL
+          const filenameOnly = filename.split("/").pop();
+          return `${API_BASE_URL}/uploads/images/${filenameOnly}`;
+        }
+        return filename;
+      }
+      // If it's just a filename, construct the full URL
+      return `${API_BASE_URL}/uploads/images/${filename}`;
+    },
   },
 
   // User profile management
@@ -765,6 +784,53 @@ export const tokenUtils = {
       const payload = JSON.parse(atob(token.split(".")[1]));
       // Refresh if token expires in less than 5 minutes
       return Date.now() >= payload.exp * 1000 - 5 * 60 * 1000;
+    } catch {
+      return false;
+    }
+  },
+};
+
+// Utility functions for image URL handling
+export const imageUtils = {
+  // Get the correct image URL regardless of storage method
+  getImageUrl(imageData) {
+    if (!imageData) return null;
+
+    // If imageData is a string, it might be a filename or full URL
+    if (typeof imageData === "string") {
+      return api.fileServer.getImageUrl(imageData);
+    }
+
+    // If imageData is an object with url property
+    if (imageData.url) {
+      return api.fileServer.getImageUrl(imageData.url);
+    }
+
+    // If imageData is an object with filename property
+    if (imageData.filename) {
+      return api.fileServer.getImageUrl(imageData.filename);
+    }
+
+    return null;
+  },
+
+  // Extract filename from URL or return as-is if already a filename
+  getFilename(urlOrFilename) {
+    if (!urlOrFilename) return null;
+
+    if (urlOrFilename.includes("/")) {
+      // Extract filename from URL
+      return urlOrFilename.split("/").pop();
+    }
+
+    return urlOrFilename;
+  },
+
+  // Check if an image URL is accessible
+  async checkImageExists(imageUrl) {
+    try {
+      const response = await fetch(imageUrl, { method: "HEAD" });
+      return response.ok;
     } catch {
       return false;
     }
