@@ -30,65 +30,13 @@ const { generalRateLimit } = require("./middleware/auth");
 // Rate limiting
 app.use(generalRateLimit);
 
-// CORS configuration
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    // Allow any localhost or local network origins
-    if (
-      origin &&
-      (origin.includes("localhost") ||
-        origin.includes("127.0.0.1") ||
-        origin.match(/192\.168\.\d+\.\d+/) ||
-        origin.match(/10\.\d+\.\d+\.\d+/) ||
-        origin.match(/172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+/))
-    ) {
-      return callback(null, true);
-    }
-
-    // Allow Render.com domains
-    if (origin && origin.includes(".onrender.com")) {
-      return callback(null, true);
-    }
-
-    // Allow specific frontend URL if set
-    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
-      return callback(null, true);
-    }
-
-    // For development, allow all origins
-    if (process.env.NODE_ENV === "development") {
-      return callback(null, true);
-    }
-
-    // For production, be more permissive with Render deployments
-    if (process.env.NODE_ENV === "production") {
-      console.log(`CORS: Allowing origin ${origin}`);
-      return callback(null, true);
-    }
-
-    callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-    "Origin",
-    "Cache-Control",
-    "X-File-Name",
-  ],
-  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
-};
-
-app.use(cors(corsOptions));
-
-// Handle preflight requests explicitly
-app.options("*", cors(corsOptions));
+// Simple CORS - allow everything
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 // Add logging for debugging
 app.use((req, res, next) => {
