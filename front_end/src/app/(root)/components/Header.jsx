@@ -85,19 +85,6 @@ const Header = () => {
       category: "Services",
     },
     {
-      name: "Services Section 1",
-      route: "/services/section1",
-      keywords: [
-        "services",
-        "section1",
-        "section 1",
-        "capabilities",
-        "prototypes",
-        "services section 1",
-      ],
-      category: "Services",
-    },
-    {
       name: "Services Section 2",
       route: "/services/section2",
       keywords: [

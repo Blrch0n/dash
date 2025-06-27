@@ -44,7 +44,6 @@ const sideBarMenu = [
         title: "Үйлчилгээ",
         link: "/services",
         subMenu: [
-          { title: "Хэсэг 1", link: "/services/section1", subMenu: [] },
           { title: "Хэсэг 2", link: "/services/section2", subMenu: [] },
         ],
       },
